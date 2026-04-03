@@ -36,6 +36,10 @@ interface AccountCenterProps {
   t: Translations;
 }
 
+/**
+ * 个人中心组件
+ * 展示用户信息、资产信息和账号绑定信息
+ */
 export const AccountCenter = ({ 
   user, 
   onLogout, 
@@ -57,6 +61,9 @@ export const AccountCenter = ({
   const [isBinding, setIsBinding] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
+  /**
+   * 处理复制用户ID逻辑
+   */
   const handleCopyId = () => {
     navigator.clipboard.writeText(user.id);
     setCopied(true);
@@ -64,6 +71,9 @@ export const AccountCenter = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  /**
+   * 处理发送验证码逻辑
+   */
   const handleSendCode = () => {
     if (!inputValue) return;
     setIsSending(true);
@@ -82,6 +92,9 @@ export const AccountCenter = ({
     }, 1000);
   };
 
+  /**
+   * 处理绑定逻辑
+   */
   const handleBind = () => {
     if (!inputValue || !codeValue) return;
     setIsBinding(true);
@@ -119,13 +132,13 @@ export const AccountCenter = ({
       animate="visible"
       className="space-y-6 pb-12"
     >
-      {/* Header */}
+      {/* 头部 */}
       <div className="flex flex-col gap-1 mb-2">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{t.account.title}</h2>
         <p className="text-sm text-slate-500 dark:text-slate-400">{t.account.title}</p>
       </div>
 
-      {/* 1. Basic Identity Info Card */}
+      {/* 1. 基础身份信息卡片 */}
       <motion.div 
         variants={itemVariants}
         className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700/50 p-6 md:p-8 shadow-sm overflow-hidden relative"
@@ -135,7 +148,7 @@ export const AccountCenter = ({
         </div>
         
         <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8 relative z-10">
-          {/* Avatar */}
+          {/* 头像 */}
           <div className="relative group">
             <div className="w-24 h-24 rounded-full bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center border-4 border-white dark:border-slate-800 shadow-md">
               <img src={user.avatar} alt="avatar" className="w-full h-full rounded-full" />
@@ -145,7 +158,7 @@ export const AccountCenter = ({
             </div>
           </div>
 
-          {/* Info */}
+          {/* 信息 */}
           <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left">
             <div className="flex items-center gap-3 mb-2">
               <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{user.name}</h3>
@@ -195,7 +208,7 @@ export const AccountCenter = ({
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* 2. Account Assets Info Card */}
+        {/* 2. 账户资产信息卡片 */}
         <motion.div 
           variants={itemVariants}
           className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700/50 p-6 shadow-sm flex flex-col"
@@ -263,7 +276,7 @@ export const AccountCenter = ({
           </div>
         </motion.div>
 
-        {/* 3. Account Binding Info Card */}
+        {/* 3. 账号绑定信息卡片 */}
         <motion.div 
           variants={itemVariants}
           className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700/50 p-6 shadow-sm flex flex-col"
@@ -282,7 +295,7 @@ export const AccountCenter = ({
           </div>
 
           <div className="space-y-4 flex-1">
-            {/* Login Method */}
+            {/* 登录方式 */}
             <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/50">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-500">
@@ -296,7 +309,7 @@ export const AccountCenter = ({
               <CheckCircle2 size={18} className="text-emerald-500" />
             </div>
 
-            {/* Login Password */}
+            {/* 登录密码 */}
             <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/50">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-500">
@@ -321,7 +334,7 @@ export const AccountCenter = ({
               </button>
             </div>
 
-            {/* Email */}
+            {/* 邮箱 */}
             <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/50">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-500">
@@ -357,7 +370,7 @@ export const AccountCenter = ({
         </motion.div>
       </div>
 
-      {/* Binding Modal */}
+      {/* 绑定弹窗 */}
       <AnimatePresence>
         {showBindModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">

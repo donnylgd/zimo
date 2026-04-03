@@ -145,6 +145,10 @@ interface CommissionAuditProps {
   setToast: (toast: { message: string; type: 'success' | 'error' | 'warning' | 'info' } | null) => void;
 }
 
+/**
+ * 佣金审核组件
+ * 用于管理员审核和管理推广佣金记录
+ */
 export const CommissionAudit = ({ t, onBack, setToast }: CommissionAuditProps) => {
   const [activeTab, setActiveTab] = useState<'all' | 'waiting' | 'pending' | 'payout' | 'paid' | 'rejected'>('all');
   const [isLoading, setIsLoading] = useState(true);
@@ -154,7 +158,7 @@ export const CommissionAudit = ({ t, onBack, setToast }: CommissionAuditProps) =
   const [selectedRecord, setSelectedRecord] = useState<CommissionRecord | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Simulate initial loading
+  // 模拟初始加载
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -162,6 +166,9 @@ export const CommissionAudit = ({ t, onBack, setToast }: CommissionAuditProps) =
     return () => clearTimeout(timer);
   }, []);
 
+  /**
+   * 根据当前标签和搜索查询过滤记录
+   */
   const filteredRecords = useMemo(() => {
     return records.filter(record => {
       const matchesTab = activeTab === 'all' || record.status === activeTab;
@@ -173,10 +180,15 @@ export const CommissionAudit = ({ t, onBack, setToast }: CommissionAuditProps) =
     });
   }, [records, activeTab, searchQuery]);
 
+  /**
+   * 处理状态更新逻辑
+   * @param id 记录ID
+   * @param newStatus 新状态
+   */
   const handleStatusUpdate = (id: string, newStatus: CommissionRecord['status']) => {
     setIsSaving(true);
     
-    // Simulate API call
+    // 模拟 API 调用
     setTimeout(() => {
       setRecords(prev => prev.map(r => r.id === id ? { ...r, status: newStatus, payoutTime: newStatus === 'paid' ? new Date().toLocaleString() : r.payoutTime } : r));
       
@@ -194,6 +206,10 @@ export const CommissionAudit = ({ t, onBack, setToast }: CommissionAuditProps) =
     }, 1000);
   };
 
+  /**
+   * 获取状态徽章
+   * @param status 佣金状态
+   */
   const getStatusBadge = (status: CommissionRecord['status']) => {
     switch (status) {
       case 'waiting':
@@ -209,6 +225,10 @@ export const CommissionAudit = ({ t, onBack, setToast }: CommissionAuditProps) =
     }
   };
 
+  /**
+   * 获取风险等级徽章
+   * @param risk 风险等级
+   */
   const getRiskBadge = (risk: CommissionRecord['risk']) => {
     switch (risk) {
       case 'normal':
@@ -222,7 +242,7 @@ export const CommissionAudit = ({ t, onBack, setToast }: CommissionAuditProps) =
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
-      {/* Header Area */}
+      {/* 头部区域 */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           {onBack && (
@@ -245,7 +265,7 @@ export const CommissionAudit = ({ t, onBack, setToast }: CommissionAuditProps) =
         </div>
       </div>
 
-      {/* Dev Notice */}
+      {/* 开发提示 */}
       <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl p-4 flex items-start gap-3">
         <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={18} />
         <div>
@@ -258,7 +278,7 @@ export const CommissionAudit = ({ t, onBack, setToast }: CommissionAuditProps) =
         </div>
       </div>
 
-      {/* Filter Area */}
+      {/* 筛选区域 */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl overflow-x-auto max-w-full no-scrollbar">
@@ -304,7 +324,7 @@ export const CommissionAudit = ({ t, onBack, setToast }: CommissionAuditProps) =
           <p className="text-sm text-slate-500 animate-pulse">{t.common.loading || "Loading records..."}</p>
         </div>
       ) : (
-        /* Table Area */
+        /* 表格区域 */
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -416,7 +436,7 @@ export const CommissionAudit = ({ t, onBack, setToast }: CommissionAuditProps) =
         </div>
       )}
 
-      {/* Details Drawer */}
+      {/* 详情抽屉 */}
       <AnimatePresence>
         {isDrawerOpen && selectedRecord && (
           <>
@@ -448,7 +468,7 @@ export const CommissionAudit = ({ t, onBack, setToast }: CommissionAuditProps) =
               </div>
 
               <div className="flex-1 overflow-y-auto p-6 space-y-8">
-                {/* Status Banner */}
+                {/* 状态横幅 */}
                 <div className="flex flex-col items-center text-center p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
                   <div className="mb-3">
                     {getStatusBadge(selectedRecord.status)}
@@ -461,7 +481,7 @@ export const CommissionAudit = ({ t, onBack, setToast }: CommissionAuditProps) =
                   </div>
                 </div>
 
-                {/* Base Info */}
+                {/* 基础信息 */}
                 <section className="space-y-4">
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <div className="w-1 h-4 bg-indigo-500 rounded-full" />
@@ -479,7 +499,7 @@ export const CommissionAudit = ({ t, onBack, setToast }: CommissionAuditProps) =
                   </div>
                 </section>
 
-                {/* Invite Info */}
+                {/* 邀请信息 */}
                 <section className="space-y-4">
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <div className="w-1 h-4 bg-indigo-500 rounded-full" />
@@ -513,7 +533,7 @@ export const CommissionAudit = ({ t, onBack, setToast }: CommissionAuditProps) =
                   </div>
                 </section>
 
-                {/* Order Info */}
+                {/* 订单信息 */}
                 <section className="space-y-4">
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <div className="w-1 h-4 bg-indigo-500 rounded-full" />
@@ -539,7 +559,7 @@ export const CommissionAudit = ({ t, onBack, setToast }: CommissionAuditProps) =
                   </div>
                 </section>
 
-                {/* Payout Info */}
+                {/* 结算信息 */}
                 <section className="space-y-4">
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <div className="w-1 h-4 bg-indigo-500 rounded-full" />
@@ -563,7 +583,7 @@ export const CommissionAudit = ({ t, onBack, setToast }: CommissionAuditProps) =
                   </div>
                 </section>
 
-                {/* Remark */}
+                {/* 备注 */}
                 <section className="space-y-4">
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <div className="w-1 h-4 bg-indigo-500 rounded-full" />
@@ -577,7 +597,7 @@ export const CommissionAudit = ({ t, onBack, setToast }: CommissionAuditProps) =
                 </section>
               </div>
 
-              {/* Drawer Actions */}
+              {/* 抽屉操作 */}
               <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex flex-col gap-3">
                 {selectedRecord.status === 'pending' && (
                   <div className="grid grid-cols-2 gap-3">

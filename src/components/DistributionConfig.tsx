@@ -38,8 +38,12 @@ interface SingleAccountConfig {
   remark: string;
 }
 
+/**
+ * 分销配置组件
+ * 用于管理员设置全局和单个账户的分销奖励规则
+ */
 export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigProps) => {
-  // A. Global Default Configuration State
+  // A. 全局默认配置状态
   const [globalConfig, setGlobalConfig] = useState({
     isEnabled: true,
     isQuotaRewardEnabled: true,
@@ -53,7 +57,7 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
     allowOverride: true
   });
 
-  // B. Single Account Configuration State
+  // B. 单个账户配置状态
   const [accounts, setAccounts] = useState<SingleAccountConfig[]>([
     {
       id: '1',
@@ -98,7 +102,7 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
 
-  // Simulate initial loading
+  // 模拟初始加载
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -111,9 +115,12 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
     a.remark.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  /**
+   * 处理保存全局配置逻辑
+   */
   const handleSaveGlobal = () => {
     setIsSaving(true);
-    // Simulate API call
+    // 模拟 API 调用
     setTimeout(() => {
       setIsSaving(false);
       if (setToast) {
@@ -122,6 +129,10 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
     }, 1000);
   };
 
+  /**
+   * 打开抽屉进行编辑或新增
+   * @param account 可选的账户配置对象
+   */
   const handleOpenDrawer = (account?: SingleAccountConfig) => {
     if (account) {
       setEditingAccount({ ...account });
@@ -146,6 +157,9 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
     setIsDrawerOpen(true);
   };
 
+  /**
+   * 处理保存单个账户配置逻辑
+   */
   const handleSaveAccount = () => {
     if (!editingAccount) return;
     
@@ -158,7 +172,7 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
 
     setIsSaving(true);
     
-    // Simulate API call
+    // 模拟 API 调用
     setTimeout(() => {
       if (accounts.find(a => a.id === editingAccount.id)) {
         setAccounts(accounts.map(a => a.id === editingAccount.id ? editingAccount : a));
@@ -174,15 +188,22 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
     }, 1000);
   };
 
+  /**
+   * 处理删除账户配置逻辑
+   * @param id 账户ID
+   */
   const handleDeleteAccount = (id: string) => {
     setAccountToDelete(id);
     setIsDeleteConfirmOpen(true);
   };
 
+  /**
+   * 确认删除逻辑
+   */
   const confirmDelete = () => {
     if (accountToDelete) {
       setIsSaving(true);
-      // Simulate API call
+      // 模拟 API 调用
       setTimeout(() => {
         setAccounts(accounts.filter(a => a.id !== accountToDelete));
         setIsSaving(false);
@@ -197,7 +218,7 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-24 animate-in fade-in duration-500">
-      {/* Dev Mode Banner */}
+      {/* 开发模式横幅 */}
       <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-2xl p-4 flex items-start gap-3">
         <AlertTriangle className="text-amber-500 shrink-0" size={20} />
         <div>
@@ -210,7 +231,7 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
         </div>
       </div>
 
-      {/* Header */}
+      {/* 头部 */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="flex items-center gap-4">
           {onBack && (
@@ -232,7 +253,7 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
           </div>
         </div>
 
-        {/* Tabs */}
+        {/* 标签页 */}
         <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit">
           <button
             onClick={() => setActiveTab('global')}
@@ -267,7 +288,7 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
       ) : (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           {activeTab === 'global' ? (
-            /* A. Global Default Configuration */
+            /* A. 全局默认配置 */
             <div className="max-w-2xl mx-auto">
               <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 shadow-sm">
                 <div className="flex items-center justify-between mb-8">
@@ -416,7 +437,7 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
               </div>
             </div>
           ) : (
-            /* B. Single Account Distribution Configuration */
+            /* B. 单个账户分销配置 */
             <div className="space-y-6">
               <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -456,7 +477,7 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
                   </div>
                 </div>
 
-                {/* Account List */}
+                {/* 账户列表 */}
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
@@ -540,7 +561,7 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* 删除确认弹窗 */}
       <AnimatePresence>
         {isDeleteConfirmOpen && (
           <>
@@ -562,8 +583,8 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
                   <Trash2 size={24} className="text-rose-500" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 dark:text-white">{t.user.logout_confirm_title || "Confirm Delete"}</h3>
-                  <p className="text-sm text-slate-500 mt-1">{t.user.logout_confirm_desc || "Are you sure you want to delete this configuration?"}</p>
+                  <h3 className="font-bold text-slate-900 dark:text-white">{t.user.logout_confirm_title || "确认删除"}</h3>
+                  <p className="text-sm text-slate-500 mt-1">{t.user.logout_confirm_desc || "您确定要删除此配置吗？"}</p>
                 </div>
                 <div className="flex gap-3 w-full pt-2">
                   <button 
@@ -578,7 +599,7 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
                     className="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 disabled:opacity-50 text-white text-sm font-bold transition-all shadow-lg shadow-rose-500/20 flex items-center justify-center gap-2"
                   >
                     {isSaving && <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />}
-                    {t.user.confirm_logout || "Delete"}
+                    {t.user.confirm_logout || "删除"}
                   </button>
                 </div>
               </div>
@@ -621,7 +642,7 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
               </div>
 
               <div className="flex-1 overflow-y-auto p-6 space-y-8">
-                {/* Basic Info */}
+                {/* 基础信息 */}
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t.distribution_config.fields.account}</label>
@@ -629,7 +650,7 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
                       type="text" 
                       value={editingAccount.account}
                       onChange={(e) => setEditingAccount({ ...editingAccount, account: e.target.value })}
-                      placeholder="Enter phone or UID"
+                      placeholder="输入手机号或 UID"
                       className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                     />
                   </div>
@@ -648,7 +669,7 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
                   </div>
                 </div>
 
-                {/* Custom Rules (Only if useGlobal is false) */}
+                {/* 自定义规则 (仅在 useGlobal 为 false 时) */}
                 <div className={`space-y-6 transition-all duration-300 ${editingAccount.useGlobal ? 'opacity-40 pointer-events-none grayscale' : ''}`}>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -672,7 +693,7 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
                           onChange={(e) => setEditingAccount({ ...editingAccount, auditDays: Number(e.target.value) })}
                           className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                         />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">D</span>
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">天</span>
                       </div>
                     </div>
                   </div>
@@ -747,7 +768,7 @@ export const DistributionConfig = ({ t, onBack, setToast }: DistributionConfigPr
                     onChange={(e) => setEditingAccount({ ...editingAccount, remark: e.target.value })}
                     rows={3}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
-                    placeholder="Add internal notes..."
+                    placeholder="添加内部备注..."
                   />
                 </div>
               </div>

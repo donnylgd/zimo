@@ -8,8 +8,12 @@ interface AlipayInfoProps {
   setToast?: (toast: { message: string, type: 'success' | 'error' | 'info' | 'warning' } | null) => void;
 }
 
+/**
+ * 支付宝信息组件
+ * 用于推广中心用户设置收款账号
+ */
 export const AlipayInfo = ({ t, onBack, setToast }: AlipayInfoProps) => {
-  // Mock initial state: Filled
+  // 模拟初始状态：已填写
   const [isFilled, setIsFilled] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -25,6 +29,9 @@ export const AlipayInfo = ({ t, onBack, setToast }: AlipayInfoProps) => {
     name: false
   });
 
+  /**
+   * 处理保存支付宝信息逻辑
+   */
   const handleSave = () => {
     const newErrors = {
       account: !formData.account.trim(),
@@ -41,7 +48,7 @@ export const AlipayInfo = ({ t, onBack, setToast }: AlipayInfoProps) => {
     }
 
     setIsSaving(true);
-    // Simulate API call
+    // 模拟 API 调用
     setTimeout(() => {
       setIsSaving(false);
       setIsFilled(true);
@@ -54,11 +61,17 @@ export const AlipayInfo = ({ t, onBack, setToast }: AlipayInfoProps) => {
     }, 1000);
   };
 
+  /**
+   * 切换到编辑模式
+   */
   const handleEdit = () => {
     setIsEditing(true);
   };
 
-  // Helper to mask sensitive info
+  /**
+   * 掩码敏感信息
+   * @param account 支付宝账号
+   */
   const maskAccount = (account: string) => {
     if (!account) return '';
     if (account.includes('@')) {
@@ -73,7 +86,7 @@ export const AlipayInfo = ({ t, onBack, setToast }: AlipayInfoProps) => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12 animate-in fade-in duration-500">
-      {/* A. Header Section */}
+      {/* A. 头部区域 */}
       <div className="flex items-center gap-4">
         <button 
           onClick={onBack}
@@ -94,7 +107,7 @@ export const AlipayInfo = ({ t, onBack, setToast }: AlipayInfoProps) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          {/* B. Current Status Area */}
+          {/* B. 当前状态区域 */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
@@ -138,7 +151,7 @@ export const AlipayInfo = ({ t, onBack, setToast }: AlipayInfoProps) => {
             )}
           </div>
 
-          {/* C. Form Area */}
+          {/* C. 表单区域 */}
           {isEditing && (
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
@@ -181,7 +194,7 @@ export const AlipayInfo = ({ t, onBack, setToast }: AlipayInfoProps) => {
                 </div>
               </div>
 
-              {/* D. Action Buttons */}
+              {/* D. 操作按钮 */}
               <div className="flex items-center gap-4 pt-4">
                 <button
                   onClick={handleSave}
@@ -219,7 +232,7 @@ export const AlipayInfo = ({ t, onBack, setToast }: AlipayInfoProps) => {
           )}
         </div>
 
-        {/* Tips Section */}
+        {/* 提示部分 */}
         <div className="space-y-6">
           <div className="bg-indigo-50 dark:bg-indigo-500/5 border border-indigo-100 dark:border-indigo-500/20 rounded-2xl p-6">
             <h3 className="text-sm font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-2 mb-4">

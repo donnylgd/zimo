@@ -25,15 +25,13 @@ import { QrCode, Loader2, CheckCircle2, AlertCircle, Eye, EyeOff, Settings, Clip
 import { translations, Language } from './i18n';
 import { AnimatePresence, motion } from 'motion/react';
 
-// Mock Data
-// ... (omitted for brevity in this thought, but I'll include the full block in the actual call)
-
-// Mock Data
+// 模拟数据
 const MOCK_TASKS: Task[] = [
   { id: 't1', filename: 'influencers_tech.csv', date: '2024-03-20 14:30', status: 'completed', total: 150, completed: 150, style: 'professional', stage: 'initial', subject: 'Paid Collaboration: Innovative Tech Gadget for Your Audience', brandSize: 'large', enableFirstSentenceStrategy: true, firstSentenceValues: ['data'] },
   { id: 't2', filename: 'beauty_creators_us.csv', date: '2024-03-19 09:15', status: 'failed', total: 500, completed: 120, style: 'casual', stage: 'details', subject: '【Brand Name】Collaboration Details & Next Steps', brandSize: 'small', enableFirstSentenceStrategy: false },
 ];
 
+// 模拟生成结果数据
 const MOCK_RESULTS: TaskResult[] = [
   { id: 'r1', creatorName: '@tech_guru', followers: '1.2M', generatedCopy: 'Hi Tech Guru, we love your recent review of the smart home hub. We are launching a new Smart Vacuum V2 with 5000Pa suction and auto-dust collection. Would you be interested in testing it out? Let me know!', status: 'success' },
   { id: 'r2', creatorName: '@gadget_girl', followers: '850K', generatedCopy: 'Dear Gadget Girl, your in-depth tech analyses are fantastic. Our new Smart Vacuum V2 features anti-tangle technology perfect for pet owners. We would be honored if you reviewed it.', status: 'success' },
@@ -49,6 +47,10 @@ const MOCK_RESULTS: TaskResult[] = [
   { id: 'r12', creatorName: '@daily_vlogs', followers: '120K', generatedCopy: '', status: 'failed', failureReason: '内容生成异常，请重新执行任务' },
 ];
 
+/**
+ * 登录内容组件
+ * 处理验证码登录和密码登录逻辑
+ */
 function LoginContent({ t, onLogin, onForgotPassword }: { t: any, onLogin: () => void, onForgotPassword: (phone: string) => void }) {
   const [loginMode, setLoginMode] = useState<'code' | 'password'>('code');
   const [phone, setPhone] = useState('');
@@ -60,11 +62,14 @@ function LoginContent({ t, onLogin, onForgotPassword }: { t: any, onLogin: () =>
   const [countdown, setCountdown] = useState(0);
   const [isSending, setIsSending] = useState(false);
 
+  /**
+   * 处理发送验证码逻辑
+   */
   const handleSendCode = () => {
     if (!phone || phone.length < 11) return;
     
-    // Simulate risk control trigger for specific number or high frequency
-    // For demo purposes, we'll trigger it if it's not already shown
+    // 模拟特定号码或高频操作触发的风控
+    // 出于演示目的，如果尚未显示，我们将触发它
     if (!showCaptcha) {
       setShowCaptcha(true);
       return;
@@ -88,6 +93,9 @@ function LoginContent({ t, onLogin, onForgotPassword }: { t: any, onLogin: () =>
     }, 1000);
   };
 
+  /**
+   * 校验表单是否有效
+   */
   const isFormValid = loginMode === 'code' 
     ? phone.length === 11 && code.length === 6 && (!showCaptcha || captcha.length === 4)
     : phone.length === 11 && password.length >= 6;
@@ -221,6 +229,10 @@ function LoginContent({ t, onLogin, onForgotPassword }: { t: any, onLogin: () =>
   );
 }
 
+/**
+ * 忘记密码内容组件
+ * 支持手机号和邮箱找回
+ */
 function ForgotPasswordContent({ t, phone: initialPhone, onReset, onCancel, onGoBind }: { t: any, phone?: string, onReset: () => void, onCancel: () => void, onGoBind: () => void }) {
   const [method, setMethod] = useState<'phone' | 'email'>('phone');
   const [code, setCode] = useState('');
@@ -231,6 +243,9 @@ function ForgotPasswordContent({ t, phone: initialPhone, onReset, onCancel, onGo
   const [countdown, setCountdown] = useState(0);
   const [isSending, setIsSending] = useState(false);
 
+  /**
+   * 处理发送重置验证码逻辑
+   */
   const handleSendCode = () => {
     setIsSending(true);
     setTimeout(() => {
@@ -248,6 +263,10 @@ function ForgotPasswordContent({ t, phone: initialPhone, onReset, onCancel, onGo
     }, 1000);
   };
 
+  /**
+   * 获取密码错误信息
+   * @param pass 密码字符串
+   */
   const getPasswordError = (pass: string) => {
     if (!pass) return '';
     if (/\s/.test(pass)) return t.user.login_password_space_error;
@@ -260,11 +279,11 @@ function ForgotPasswordContent({ t, phone: initialPhone, onReset, onCancel, onGo
   const passwordError = getPasswordError(newPassword);
   const isFormValid = code.length === 6 && !passwordError && newPassword.length >= 8 && newPassword === confirmPassword;
 
-  // Mask phone/email (mocking email for forgot password if not logged in)
+  // 掩码手机号/邮箱（模拟未登录时忘记密码的邮箱）
   const maskedPhone = initialPhone ? initialPhone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : '138****8888';
-  // For forgot password, we might not know the email if not logged in, 
-  // but the prompt says "已绑定时脱敏", implying we should show it if it exists.
-  // In a real app, we'd fetch this. Here we'll mock it if phone matches a known one or just show a placeholder.
+  // 对于忘记密码，如果未登录，我们可能不知道邮箱，
+  // 但提示说“已绑定时脱敏”，意味着如果存在我们就应该显示它。
+  // 在真实应用中，我们会获取这个。在这里，如果手机号匹配已知号码，我们将模拟它，或者只显示一个占位符。
   const maskedEmail = initialPhone === '13882695270' ? 'do****@gmail.com' : ''; 
 
   return (
@@ -400,6 +419,10 @@ function ForgotPasswordContent({ t, phone: initialPhone, onReset, onCancel, onGo
   );
 }
 
+/**
+ * 设置密码内容组件
+ * 用于首次设置登录密码
+ */
 function SetPasswordContent({ t, phone: initialPhone, onSet, onCancel }: { t: any, phone?: string, onSet: () => void, onCancel: () => void }) {
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -409,6 +432,9 @@ function SetPasswordContent({ t, phone: initialPhone, onSet, onCancel }: { t: an
   const [countdown, setCountdown] = useState(0);
   const [isSending, setIsSending] = useState(false);
 
+  /**
+   * 处理发送验证码逻辑
+   */
   const handleSendCode = () => {
     setIsSending(true);
     setTimeout(() => {
@@ -426,6 +452,10 @@ function SetPasswordContent({ t, phone: initialPhone, onSet, onCancel }: { t: an
     }, 1000);
   };
 
+  /**
+   * 获取密码错误信息
+   * @param pass 密码字符串
+   */
   const getPasswordError = (pass: string) => {
     if (!pass) return '';
     if (/\s/.test(pass)) return t.user.login_password_space_error;
@@ -535,6 +565,10 @@ function SetPasswordContent({ t, phone: initialPhone, onSet, onCancel }: { t: an
   );
 }
 
+/**
+ * 修改密码内容组件
+ * 支持手机号和邮箱验证后修改
+ */
 function ChangePasswordContent({ t, user, onSet, onCancel, onGoBind }: { t: any, user: UserProfile | null, onSet: () => void, onCancel: () => void, onGoBind: () => void }) {
   const [method, setMethod] = useState<'phone' | 'email'>('phone');
   const [code, setCode] = useState('');
@@ -545,6 +579,9 @@ function ChangePasswordContent({ t, user, onSet, onCancel, onGoBind }: { t: any,
   const [countdown, setCountdown] = useState(0);
   const [isSending, setIsSending] = useState(false);
 
+  /**
+   * 处理发送验证码逻辑
+   */
   const handleSendCode = () => {
     setIsSending(true);
     setTimeout(() => {
@@ -562,6 +599,10 @@ function ChangePasswordContent({ t, user, onSet, onCancel, onGoBind }: { t: any,
     }, 1000);
   };
 
+  /**
+   * 获取密码错误信息
+   * @param pass 密码字符串
+   */
   const getPasswordError = (pass: string) => {
     if (!pass) return '';
     if (/\s/.test(pass)) return t.user.login_password_space_error;
@@ -574,7 +615,7 @@ function ChangePasswordContent({ t, user, onSet, onCancel, onGoBind }: { t: any,
   const passwordError = getPasswordError(newPassword);
   const isFormValid = code.length === 6 && !passwordError && newPassword.length >= 8 && newPassword === confirmPassword;
 
-  // Mask phone/email
+  // 掩码手机号/邮箱
   const maskedPhone = user?.phone ? user.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : '138****8888';
   const maskedEmail = user?.email ? user.email.replace(/(.{2}).*(@.*)/, '$1****$2') : '';
 
@@ -711,12 +752,19 @@ function ChangePasswordContent({ t, user, onSet, onCancel, onGoBind }: { t: any,
   );
 }
 
+/**
+ * 绑定邮箱内容组件
+ * 用于账号安全和找回密码
+ */
 function BindEmailContent({ t, onBind }: { t: any, onBind: (email: string) => void }) {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [countdown, setCountdown] = useState(0);
   const [isSending, setIsSending] = useState(false);
 
+  /**
+   * 处理发送邮箱验证码逻辑
+   */
   const handleSendCode = () => {
     if (!email || !email.includes('@')) return;
     setIsSending(true);
@@ -735,6 +783,9 @@ function BindEmailContent({ t, onBind }: { t: any, onBind: (email: string) => vo
     }, 1000);
   };
 
+  /**
+   * 校验表单是否有效
+   */
   const isFormValid = email.includes('@') && code.length === 6;
 
   return (
@@ -789,6 +840,10 @@ function BindEmailContent({ t, onBind }: { t: any, onBind: (email: string) => vo
   );
 }
 
+/**
+ * 应用程序根组件
+ * 管理全局状态、路由和弹窗
+ */
 function App() {
   const [currentView, setCurrentView] = useState<ViewState>('workspace');
   const [promotionStatus, setPromotionStatus] = useState<PromotionStatus>('none');
@@ -801,7 +856,7 @@ function App() {
   
   const t = translations[language];
 
-  // Handle dark mode toggle
+  // 处理深色模式切换
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -810,7 +865,7 @@ function App() {
     }
   }, [isDarkMode]);
   
-  // Modals
+  // 弹窗状态
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
   const [forgotPasswordPhone, setForgotPasswordPhone] = useState('');
@@ -823,7 +878,10 @@ function App() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [toast, setToast] = useState<{message: string, type: ToastType} | null>(null);
 
-  // Handlers
+  // 处理函数
+  /**
+   * 切换语言
+   */
   const toggleLanguage = () => {
     const newLang = language === 'zh' ? 'en' : 'zh';
     setLanguage(newLang);
@@ -833,6 +891,9 @@ function App() {
     });
   };
 
+  /**
+   * 切换深色模式
+   */
   const toggleDarkMode = () => {
     const newMode = !isDarkMode;
     setIsDarkMode(newMode);
@@ -841,6 +902,10 @@ function App() {
       type: 'info' 
     });
   };
+
+  /**
+   * 处理登录逻辑
+   */
   const handleLogin = () => {
     setIsLoginModalOpen(false);
     setUser({
@@ -855,16 +920,22 @@ function App() {
       registerDate: '2024-01-15',
       lastLoginDate: '2024-03-28',
       loginMethod: 'phone',
-      hasPassword: false // Default to false for new logins as requested
+      hasPassword: false // 根据要求，新登录默认没有密码
     });
     setToast({ message: t.common.success, type: 'success' });
   };
 
+  /**
+   * 处理重置密码逻辑
+   */
   const handleResetPassword = () => {
     setIsForgotPasswordModalOpen(false);
     setToast({ message: t.common.success, type: 'success' });
   };
 
+  /**
+   * 处理设置密码逻辑
+   */
   const handleSetPassword = () => {
     if (user) {
       setUser({ ...user, hasPassword: true });
@@ -873,11 +944,17 @@ function App() {
     setToast({ message: t.common.success, type: 'success' });
   };
 
+  /**
+   * 处理更新密码逻辑
+   */
   const handleUpdatePassword = () => {
     setIsChangePasswordModalOpen(false);
     setToast({ message: t.common.success, type: 'success' });
   };
 
+  /**
+   * 处理绑定邮箱逻辑
+   */
   const handleBindEmail = (email: string) => {
     if (user) {
       setUser({ ...user, email });
@@ -886,10 +963,16 @@ function App() {
     setToast({ message: t.common.success_bind, type: 'success' });
   };
 
+  /**
+   * 处理退出登录逻辑
+   */
   const handleLogout = () => {
     setIsLogoutConfirmOpen(true);
   };
 
+  /**
+   * 确认退出登录
+   */
   const confirmLogout = () => {
     setUser(null);
     setCurrentView('workspace');
@@ -897,10 +980,13 @@ function App() {
     setToast({ message: t.user.logout, type: 'info' });
   };
 
+  /**
+   * 处理开始生成逻辑
+   */
   const handleStartGenerate = (file: File, config: any) => {
     if (!user) return;
     
-    // Deduct quota
+    // 扣除配额
     if (user.quota !== 'unlimited') {
       setUser({ ...user, quota: user.quota - 1 });
     }
@@ -924,19 +1010,22 @@ function App() {
     setCurrentView('history');
     setToast({ message: t.workspace.generating_msg, type: 'success' });
 
-    // Simulate completion
+    // 模拟生成完成
     setTimeout(() => {
       setTasks(prev => prev.map(t => t.id === newTask.id ? { ...t, status: 'completed', completed: 100 } : t));
       setToast({ message: `${t.workspace.title} ${file.name} ${t.history.status.completed}`, type: 'success' });
     }, 3000);
   };
 
+  /**
+   * 处理购买套餐逻辑
+   */
   const handleBuyPlan = (planId: string) => {
     setSelectedPlan(planId);
     setPaymentState('waiting');
     setIsPaymentModalOpen(true);
 
-    // Simulate payment success after 3 seconds
+    // 模拟 3 秒后支付成功
     setTimeout(() => {
       setPaymentState('success');
       setTimeout(() => {
@@ -1146,7 +1235,7 @@ function App() {
           )}
         </Layout>
 
-        {/* Dev Entry Buttons - Bottom Left (Hidden in Production) */}
+        {/* 开发入口按钮 - 左下角（生产环境隐藏） */}
         {import.meta.env.DEV && (
           <div className="fixed bottom-4 left-4 z-50 flex flex-col gap-2">
             <button 
@@ -1166,7 +1255,7 @@ function App() {
           </div>
         )}
 
-        {/* Login Modal */}
+        {/* 登录弹窗 */}
         <Modal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} title={t.user.login_title} width="max-w-sm">
           <LoginContent 
             t={t} 
@@ -1179,7 +1268,7 @@ function App() {
           />
         </Modal>
 
-        {/* Forgot Password Modal */}
+        {/* 忘记密码弹窗 */}
         <Modal isOpen={isForgotPasswordModalOpen} onClose={() => setIsForgotPasswordModalOpen(false)} title={t.user.login_reset_password_title} width="max-w-sm">
           <ForgotPasswordContent 
             t={t} 
@@ -1193,7 +1282,7 @@ function App() {
           />
         </Modal>
 
-        {/* Set Password Modal */}
+        {/* 设置密码弹窗 */}
         <Modal isOpen={isSetPasswordModalOpen} onClose={() => setIsSetPasswordModalOpen(false)} title={t.user.login_set_password_title} width="max-w-sm">
           <SetPasswordContent 
             t={t} 
@@ -1203,7 +1292,7 @@ function App() {
           />
         </Modal>
 
-        {/* Change Password Modal */}
+        {/* 修改密码弹窗 */}
         <Modal isOpen={isChangePasswordModalOpen} onClose={() => setIsChangePasswordModalOpen(false)} title={t.account.change_password_title} width="max-w-sm">
           <ChangePasswordContent 
             t={t} 
@@ -1217,12 +1306,12 @@ function App() {
           />
         </Modal>
 
-        {/* Bind Email Modal */}
+        {/* 绑定邮箱弹窗 */}
         <Modal isOpen={isBindEmailModalOpen} onClose={() => setIsBindEmailModalOpen(false)} title={t.account.bind_email_title} width="max-w-sm">
           <BindEmailContent t={t} onBind={handleBindEmail} />
         </Modal>
 
-        {/* Logout Confirmation Modal */}
+        {/* 退出登录确认弹窗 */}
         <Modal isOpen={isLogoutConfirmOpen} onClose={() => setIsLogoutConfirmOpen(false)} title={t.user.logout_confirm_title} width="max-w-sm">
           <div className="py-4">
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-8">{t.user.logout_confirm_desc}</p>
@@ -1243,7 +1332,7 @@ function App() {
           </div>
         </Modal>
 
-        {/* Payment Modal */}
+        {/* 支付弹窗 */}
         <Modal isOpen={isPaymentModalOpen} onClose={() => paymentState !== 'success' && setIsPaymentModalOpen(false)} title={t.user.payment_title} width="max-w-sm">
           <div className="flex flex-col items-center text-center py-4">
             {paymentState === 'waiting' && (
