@@ -24,6 +24,10 @@ interface HistoryProps {
   t: Translations;
 }
 
+/**
+ * 历史记录组件
+ * 展示用户过往所有的文案生成任务列表，支持搜索和筛选
+ */
 export const History = ({ tasks, onViewTask, t }: HistoryProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [stageFilter, setStageFilter] = useState('all');

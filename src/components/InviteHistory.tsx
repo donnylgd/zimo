@@ -7,6 +7,10 @@ interface InviteHistoryProps {
   onBack: () => void;
 }
 
+/**
+ * 邀请记录组件
+ * 展示用户通过推广链接邀请的所有用户列表及其状态
+ */
 export const InviteHistory = ({ t, onBack }: InviteHistoryProps) => {
   const [activeTab, setActiveTab] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
@@ -36,6 +40,11 @@ export const InviteHistory = ({ t, onBack }: InviteHistoryProps) => {
 
   const filteredData = activeTab === 'all' ? mockData : mockData.filter(item => item.status === activeTab);
 
+  /**
+   * 根据状态获取对应的样式类名
+   * @param status 状态值
+   * @returns Tailwind CSS 类名字符串
+   */
   const getStatusStyle = (status: string) => {
     switch (status) {
       case 'paid': return 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';

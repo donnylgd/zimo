@@ -9,6 +9,10 @@ interface PromotionCenterProps {
   onChangeView?: (view: any) => void;
 }
 
+/**
+ * 推广中心组件
+ * 审核通过后，用户查看推广数据、生成推广链接的核心页面
+ */
 export const PromotionCenter = ({ t, onBack, setToast, onChangeView }: PromotionCenterProps) => {
   const [isLoading, setIsLoading] = React.useState(true);
   
@@ -24,6 +28,11 @@ export const PromotionCenter = ({ t, onBack, setToast, onChangeView }: Promotion
     return () => clearTimeout(timer);
   }, []);
 
+  /**
+   * 处理复制推广链接
+   * @param text 要复制的文本
+   * @param type 复制类型：'code' (邀请码) 或 'link' (邀请链接)
+   */
   const handleCopy = (text: string, type: 'code' | 'link') => {
     navigator.clipboard.writeText(text);
     if (setToast) {

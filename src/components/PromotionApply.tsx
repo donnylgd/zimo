@@ -19,6 +19,10 @@ interface PromotionApplyProps {
   onApply: () => void;
 }
 
+/**
+ * 推广申请组件
+ * 用户未开通推广权限时显示的引导页面
+ */
 export const PromotionApply = ({ t, onBack, onApply }: PromotionApplyProps) => {
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">

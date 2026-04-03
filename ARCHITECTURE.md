@@ -21,8 +21,6 @@
   /components        # 可复用 UI 组件
     AccountCenter.tsx    # 个人中心
     AlipayInfo.tsx       # 支付宝信息管理
-    CommissionAudit.tsx  # 佣金审核管理
-    DistributionConfig.tsx # 分销规则配置
     PromotionApply.tsx   # 推广权限申请入口
     PromotionForm.tsx    # 推广权限申请表单
     Workspace.tsx        # 工作台/核心业务操作区
@@ -66,7 +64,7 @@
 2. 在“个人中心”查看资产。
 3. 绑定支付宝信息 (`AlipayInfo`)。
 4. 提交提现申请。
-5. 管理员在“佣金审核”页面 (`CommissionAudit`) 查看并处理申请。
+5. 系统管理员在后台管理系统中审核并处理申请。
 6. 审核通过后，佣金发放至用户账户。
 
 ## 5. 开发规范

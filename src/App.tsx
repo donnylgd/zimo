@@ -13,8 +13,6 @@ import { PromotionCenter } from './components/PromotionCenter';
 import { InviteHistory } from './components/InviteHistory';
 import { RewardHistory } from './components/RewardHistory';
 import { AlipayInfo } from './components/AlipayInfo';
-import { DistributionConfig } from './components/DistributionConfig';
-import { CommissionAudit } from './components/CommissionAudit';
 import { ReferralDashboard } from './components/ReferralDashboard';
 import { PromotionApply } from './components/PromotionApply';
 import { PromotionForm } from './components/PromotionForm';
@@ -1225,33 +1223,11 @@ function App() {
           {currentView === 'alipay_info' && (
             <AlipayInfo t={t} onBack={() => setCurrentView('promotion_center')} setToast={setToast} />
           )}
-
-          {currentView === 'distribution_config' && (
-            <DistributionConfig t={t} setToast={setToast} onBack={() => setCurrentView('workspace')} />
-          )}
-
-          {currentView === 'commission_audit' && (
-            <CommissionAudit t={t} setToast={setToast} onBack={() => setCurrentView('workspace')} />
-          )}
         </Layout>
 
         {/* 开发入口按钮 - 左下角（生产环境隐藏） */}
         {import.meta.env.DEV && (
           <div className="fixed bottom-4 left-4 z-50 flex flex-col gap-2">
-            <button 
-              onClick={() => setCurrentView('distribution_config')}
-              className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 dark:text-slate-500 text-[10px] font-bold rounded-lg transition-all border border-slate-200 dark:border-slate-700 flex items-center gap-2 opacity-50 hover:opacity-100"
-            >
-              <Settings size={12} />
-              {t.distribution_config.dev_entry}
-            </button>
-            <button 
-              onClick={() => setCurrentView('commission_audit')}
-              className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 dark:text-slate-500 text-[10px] font-bold rounded-lg transition-all border border-slate-200 dark:border-slate-700 flex items-center gap-2 opacity-50 hover:opacity-100"
-            >
-              <ClipboardCheck size={12} />
-              {t.commission_audit.dev_entry}
-            </button>
           </div>
         )}
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, History, LogOut, CreditCard, ChevronDown, Sparkles, Send, Moon, Sun, User, Megaphone, Settings, ClipboardCheck } from 'lucide-react';
+import { LayoutDashboard, History, LogOut, CreditCard, ChevronDown, Sparkles, Send, Moon, Sun, User, Megaphone } from 'lucide-react';
 import { ViewState, UserProfile } from '../types';
 import { Language, translations } from '../i18n';
 
@@ -175,27 +175,6 @@ export const Layout = ({
                       <CreditCard size={16} className="text-slate-400" />
                       {t.user.my_plan}
                     </button>
-                    <div className="h-px bg-slate-100 dark:bg-slate-700 my-1"></div>
-                    
-                    {/* Admin Section */}
-                    <div className="px-4 py-1.5">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{language === 'zh' ? '后台管理' : 'Management'}</p>
-                    </div>
-                    <button 
-                      onClick={() => { onChangeView('distribution_config'); setIsDropdownOpen(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white transition-colors"
-                    >
-                      <Settings size={16} className="text-slate-400" />
-                      {t.distribution_config.title}
-                    </button>
-                    <button 
-                      onClick={() => { onChangeView('commission_audit'); setIsDropdownOpen(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white transition-colors"
-                    >
-                      <ClipboardCheck size={16} className="text-slate-400" />
-                      {t.commission_audit.title}
-                    </button>
-
                     <div className="h-px bg-slate-100 dark:bg-slate-700 my-1"></div>
                     <button 
                       onClick={() => { onLogout(); setIsDropdownOpen(false); }}

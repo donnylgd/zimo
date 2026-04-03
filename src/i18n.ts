@@ -576,101 +576,6 @@ export const translations = {
         save_success: '收款信息保存成功'
       }
     },
-    distribution_config: {
-      title: '分销配置中心',
-      desc: '管理分销推广的默认规则，并支持对单个账户设置单独规则。',
-      dev_banner_title: '内部开发演示页',
-      dev_banner_desc: '当前页面仅用于开发演示与内部预览，正式上线时不对外展示。',
-      dev_entry: '开发入口',
-      global_title: '全局默认配置',
-      global_desc: '用于统一配置默认分销规则',
-      account_title: '单账户分销配置',
-      account_desc: '用于对指定账户设置独立规则，优先级高于全局默认规则',
-      add_account: '新增账户配置',
-      edit_account: '编辑账户配置',
-      drawer_desc: '设置该账户的独立分销规则',
-      save_success: '配置保存成功',
-      fields: {
-        is_enabled: '是否开启分销',
-        is_enabled_desc: '关闭后全站分销功能将不可用',
-        is_quota_reward: '是否开启额度奖励',
-        is_cash_commission: '是否开启现金佣金',
-        reg_reward: '注册奖励额度',
-        act_reward: '激活奖励额度',
-        first_order_reward: '首单附加额度',
-        commission_rate: '首单分佣比例',
-        audit_days: '审核等待期天数',
-        require_alipay: '要求填写支付宝信息',
-        require_alipay_desc: '开启后用户必须填写支付宝才能获得佣金',
-        allow_override: '允许单账户覆盖配置',
-        allow_override_desc: '是否允许为特定账户设置独立规则',
-        account: '账户信息',
-        use_global: '沿用全局默认规则',
-        use_global_desc: '开启后将忽略下方自定义设置',
-        reward_limit: '单账户奖励上限',
-        start_time: '生效时间',
-        end_time: '失效时间',
-        remark: '备注'
-      },
-      table: {
-        account: '账户',
-        mode: '配置模式',
-        mode_global: '全局默认',
-        mode_custom: '独立配置',
-        rate: '分佣比例',
-        status: '状态'
-      }
-    },
-    commission_audit: {
-      title: '佣金审核台',
-      subtitle: '用于审核首单佣金记录、核对订单信息并更新线下打款状态',
-      dev_notice: '当前为内部开发演示页，正式上线不对外展示',
-      dev_entry: '佣金审核台 (Dev)',
-      tabs: {
-        all: '全部',
-        waiting: '审核等待中',
-        pending: '待审核',
-        payout: '待打款',
-        paid: '已打款',
-        rejected: '审核驳回'
-      },
-      table: {
-        promoter: '推广人',
-        invitee: '被邀请人',
-        order_id: '订单号',
-        order_amount: '订单金额',
-        paid_amount: '实付金额',
-        rate: '分佣比例',
-        commission: '应得佣金',
-        pay_time: '支付时间',
-        audit_time: '预计可审核时间',
-        status: '当前状态',
-        alipay: '支付宝账号',
-        recipient: '收款人姓名',
-        risk: '风险标记',
-        remark: '备注'
-      },
-      actions: {
-        approve: '审核通过',
-        reject: '审核驳回',
-        mark_payout: '标记待打款',
-        mark_paid: '标记已打款',
-        view_details: '查看详情'
-      },
-      risk_levels: {
-        normal: '正常',
-        review: '待复核',
-        high: '高风险'
-      },
-      details: {
-        title: '佣金记录详情',
-        base_info: '基础信息',
-        invite_info: '邀请关系',
-        order_info: '订单信息',
-        payout_info: '收款信息',
-        remark_placeholder: '请输入操作备注...'
-      }
-    },
     common: {
       mobile_title: '请在电脑端访问',
       mobile_desc: 'ZIMO 灵鸮需要处理复杂的表格数据，为了保证您的体验，请使用桌面端浏览器访问本平台。',
@@ -726,11 +631,7 @@ export const translations = {
       empty_invites_title: '暂无邀请记录',
       empty_invites_desc: '邀请成功的用户会显示在这里',
       empty_rewards_title: '暂无奖励记录',
-      empty_rewards_desc: '获得奖励后会显示在这里',
-      empty_config_title: '暂无单账户配置',
-      empty_config_desc: '可新增单账户分销规则',
-      empty_commission_title: '暂无佣金记录',
-      empty_commission_desc: '新的首单佣金会显示在这里'
+      empty_rewards_desc: '获得奖励后会显示在这里'
     }
   },
   en: {
@@ -1310,101 +1211,6 @@ export const translations = {
         save_success: 'Payment info saved successfully'
       }
     },
-    distribution_config: {
-      title: 'Distribution Config Center',
-      desc: 'Manage default distribution rules and set individual rules for specific accounts.',
-      dev_banner_title: 'Internal Development Demo',
-      dev_banner_desc: 'This page is for development demo and internal preview only. It will not be shown in production.',
-      dev_entry: 'Dev Entry',
-      global_title: 'Global Default Configuration',
-      global_desc: 'Used for unified default distribution rules',
-      account_title: 'Single Account Configuration',
-      account_desc: 'Used for setting independent rules for specific accounts, priority higher than global rules',
-      add_account: 'Add Account Config',
-      edit_account: 'Edit Account Config',
-      drawer_desc: 'Set independent distribution rules for this account',
-      save_success: 'Configuration saved successfully',
-      fields: {
-        is_enabled: 'Enable Distribution',
-        is_enabled_desc: 'If disabled, all distribution features will be unavailable',
-        is_quota_reward: 'Enable Quota Reward',
-        is_cash_commission: 'Enable Cash Commission',
-        reg_reward: 'Registration Reward',
-        act_reward: 'Activation Reward',
-        first_order_reward: 'First Order Extra',
-        commission_rate: 'First Order Rate',
-        audit_days: 'Audit Waiting Days',
-        require_alipay: 'Require Alipay Info',
-        require_alipay_desc: 'Users must fill Alipay info to earn commission',
-        allow_override: 'Allow Account Override',
-        allow_override_desc: 'Whether to allow independent rules for specific accounts',
-        account: 'Account Info',
-        use_global: 'Use Global Rules',
-        use_global_desc: 'If enabled, custom settings below will be ignored',
-        reward_limit: 'Account Reward Limit',
-        start_time: 'Start Time',
-        end_time: 'End Time',
-        remark: 'Remark'
-      },
-      table: {
-        account: 'Account',
-        mode: 'Config Mode',
-        mode_global: 'Global',
-        mode_custom: 'Custom',
-        rate: 'Rate',
-        status: 'Status'
-      }
-    },
-    commission_audit: {
-      title: 'Commission Audit Desk',
-      subtitle: 'Audit first order commission records, check order info, and update payout status',
-      dev_notice: 'Internal development demo, not for production',
-      dev_entry: 'Commission Audit (Dev)',
-      tabs: {
-        all: 'All',
-        waiting: 'Waiting',
-        pending: 'Pending Audit',
-        payout: 'Pending Payout',
-        paid: 'Paid',
-        rejected: 'Rejected'
-      },
-      table: {
-        promoter: 'Promoter',
-        invitee: 'Invitee',
-        order_id: 'Order ID',
-        order_amount: 'Order Amt',
-        paid_amount: 'Paid Amt',
-        rate: 'Rate',
-        commission: 'Commission',
-        pay_time: 'Pay Time',
-        audit_time: 'Est. Audit Time',
-        status: 'Status',
-        alipay: 'Alipay',
-        recipient: 'Recipient',
-        risk: 'Risk',
-        remark: 'Remark'
-      },
-      actions: {
-        approve: 'Approve',
-        reject: 'Reject',
-        mark_payout: 'Mark Payout',
-        mark_paid: 'Mark Paid',
-        view_details: 'Details'
-      },
-      risk_levels: {
-        normal: 'Normal',
-        review: 'To Review',
-        high: 'High Risk'
-      },
-      details: {
-        title: 'Commission Details',
-        base_info: 'Base Info',
-        invite_info: 'Invite Info',
-        order_info: 'Order Info',
-        payout_info: 'Payout Info',
-        remark_placeholder: 'Enter operation remark...'
-      }
-    },
     common: {
       mobile_title: 'Please Use Desktop',
       mobile_desc: 'ZIMO Pigeon requires complex data handling. Please use a desktop browser for the best experience.',
@@ -1462,11 +1268,7 @@ export const translations = {
       empty_invites_title: 'No Invites',
       empty_invites_desc: 'Invited users will appear here',
       empty_rewards_title: 'No Rewards',
-      empty_rewards_desc: 'Rewards will appear here after earning them',
-      empty_config_title: 'No Custom Configs',
-      empty_config_desc: 'You can add individual distribution rules here',
-      empty_commission_title: 'No Commission Records',
-      empty_commission_desc: 'New commission records will appear here'
+      empty_rewards_desc: 'Rewards will appear here after earning them'
     }
   }
 };

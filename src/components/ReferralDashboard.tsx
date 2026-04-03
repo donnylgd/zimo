@@ -11,6 +11,10 @@ interface ReferralDashboardProps {
   setPromotionStatus: (status: PromotionStatus) => void;
 }
 
+/**
+ * 推广仪表盘组件
+ * 作为推广中心的入口，负责根据用户的推广权限状态（未申请、审核中、已通过、已驳回）进行视图跳转
+ */
 export const ReferralDashboard = ({ t, onChangeView, promotionStatus, setPromotionStatus }: ReferralDashboardProps) => {
   useEffect(() => {
     const timer = setTimeout(() => {

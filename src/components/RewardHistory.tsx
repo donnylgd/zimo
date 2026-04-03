@@ -7,6 +7,10 @@ interface RewardHistoryProps {
   onBack: () => void;
 }
 
+/**
+ * 奖励明细组件
+ * 展示用户的额度奖励和佣金奖励记录
+ */
 export const RewardHistory = ({ t, onBack }: RewardHistoryProps) => {
   const [activeTab, setActiveTab] = useState<'quota' | 'commission'>('quota');
   const [isLoading, setIsLoading] = useState(true);
@@ -94,6 +98,11 @@ export const RewardHistory = ({ t, onBack }: RewardHistoryProps) => {
     },
   ];
 
+  /**
+   * 根据状态获取对应的样式类名
+   * @param status 状态值
+   * @returns Tailwind CSS 类名字符串
+   */
   const getStatusStyle = (status: string) => {
     switch (status) {
       case 'paid': return 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
@@ -106,14 +115,29 @@ export const RewardHistory = ({ t, onBack }: RewardHistoryProps) => {
     }
   };
 
+  /**
+   * 根据状态获取对应的显示标签文本
+   * @param status 状态值
+   * @returns 翻译后的标签文本
+   */
   const getStatusLabel = (status: string) => {
     return t.promotion_center.reward_history.status[status] || (language === 'zh' ? '已发放' : 'Issued');
   };
 
+  /**
+   * 根据状态获取对应的提示文本
+   * @param status 状态值
+   * @returns 翻译后的提示文本
+   */
   const getStatusHint = (status: string) => {
     return t.promotion_center.reward_history.status_hints[status] || '';
   };
 
+  /**
+   * 根据状态获取对应的图标组件
+   * @param status 状态值
+   * @returns Lucide 图标组件或 null
+   */
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'paid': return <CheckCircle2 size={14} />;

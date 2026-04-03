@@ -8,6 +8,10 @@ interface PromotionFormProps {
   onSubmit: () => void;
 }
 
+/**
+ * 推广申请表单组件
+ * 用户填写详细资料以申请推广权限
+ */
 export const PromotionForm = ({ t, onBack, onSubmit }: PromotionFormProps) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -22,6 +26,10 @@ export const PromotionForm = ({ t, onBack, onSubmit }: PromotionFormProps) => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  /**
+   * 验证表单数据
+   * @returns 是否验证通过
+   */
   const validate = () => {
     const newErrors: Record<string, string> = {};
     
@@ -40,6 +48,9 @@ export const PromotionForm = ({ t, onBack, onSubmit }: PromotionFormProps) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * 处理表单提交
+   */
   const handleFormSubmit = () => {
     if (validate()) {
       onSubmit();

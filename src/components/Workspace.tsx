@@ -15,6 +15,10 @@ interface WorkspaceProps {
   t: Translations;
 }
 
+/**
+ * 工作台组件
+ * 核心业务流程：达人数据导入 -> 邮件策略配置 -> 预览与开始生成
+ */
 export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: WorkspaceProps) => {
 
   const STAGES = [
@@ -81,6 +85,9 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
     setValidationError(null);
   }, [currentStep]);
 
+  /**
+   * 处理 AI 生成邮件标题
+   */
   const handleGenerateSubject = () => {
     if (!config.stage || !config.brandSize) {
       setShowValidation(true);
@@ -109,6 +116,9 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
     }, 800);
   };
 
+  /**
+   * 处理 AI 优化产品卖点
+   */
   const handleOptimizeSellingPoints = () => {
     if (!config.sellingPoints) {
       setShowValidation(true);
@@ -132,6 +142,11 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
     }, 1000);
   };
 
+  /**
+   * 获取当前步骤缺失的必填项
+   * @param step 步骤编号
+   * @returns 缺失项的描述数组
+   */
   const getMissingItems = (step: number) => {
     const missing: string[] = [];
     if (step === 1) {
@@ -161,6 +176,11 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
     return missing;
   };
 
+  /**
+   * 验证当前步骤是否可以进入下一步
+   * @param step 步骤编号
+   * @returns 验证结果对象
+   */
   const validateStep = (step: number) => {
     const missing = getMissingItems(step);
     if (missing.length > 0) {
@@ -169,6 +189,10 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
     return { valid: true, messages: [] };
   };
 
+  /**
+   * 检查用户登录状态
+   * @returns 是否已登录
+   */
   const checkLogin = () => {
     if (!user) {
       setToast({ message: t.user.login_required_tip, type: 'warning' });
@@ -178,6 +202,9 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
     return true;
   };
 
+  /**
+   * 处理进入下一步
+   */
   const handleNext = () => {
     if (currentStep === 1 && !checkLogin()) return;
     
@@ -192,6 +219,10 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
     }
   };
 
+  /**
+   * 验证提醒组件
+   * 展示当前步骤缺失的必填项
+   */
   const ValidationAlert = ({ step }: { step: number }) => {
     if (!showValidation) return null;
     
@@ -220,6 +251,10 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
     );
   };
 
+  /**
+   * 摘要头部组件
+   * 用于在后续步骤展示前序步骤的配置摘要
+   */
   const SummaryHeader = ({ title, items }: { title: string, items: { label: string, value: string }[] }) => (
     <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-100 dark:border-slate-800 mb-6">
       <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-3">{title}</h4>
@@ -231,6 +266,10 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
     </div>
   );
 
+  /**
+   * 处理文件上传与解析
+   * @param e 文件输入事件
+   */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
@@ -310,6 +349,9 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
     reader.readAsBinaryString(selectedFile);
   };
 
+  /**
+   * 处理开始生成任务
+   */
   const handleStart = () => {
     if (!user) {
       onLoginClick();

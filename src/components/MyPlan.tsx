@@ -13,10 +13,17 @@ interface MyPlanProps {
   t: Translations;
 }
 
+/**
+ * 我的套餐组件
+ * 展示用户当前套餐状态、配额使用情况，并提供升级套餐和兑换码功能
+ */
 export const MyPlan = ({ user, onBuyPlan, onRedeemCode, onViewTransactions, setToast, t }: MyPlanProps) => {
   const [promoCode, setPromoCode] = useState('');
   const [isRedeeming, setIsRedeeming] = useState(false);
 
+  /**
+   * 处理兑换码逻辑
+   */
   const handleRedeem = () => {
     if (!promoCode.trim()) return;
     setIsRedeeming(true);

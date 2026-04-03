@@ -4,6 +4,10 @@ import { motion, AnimatePresence } from 'motion/react';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
+/**
+ * 轻提示组件
+ * 用于显示操作成功、失败或提示信息
+ */
 export const Toast = ({ message, type = 'success', onClose }: { message: string, type?: ToastType, onClose: () => void }) => {
   useEffect(() => {
     const timer = setTimeout(onClose, 3000);
@@ -46,6 +50,10 @@ export const Toast = ({ message, type = 'success', onClose }: { message: string,
   );
 };
 
+/**
+ * 模态框组件
+ * 用于展示弹窗内容，支持自定义标题和宽度
+ */
 export const Modal = ({ isOpen, onClose, title, children, width = 'max-w-md' }: { isOpen: boolean, onClose: () => void, title: string, children: React.ReactNode, width?: string }) => {
   if (!isOpen) return null;
   return (
@@ -65,6 +73,10 @@ export const Modal = ({ isOpen, onClose, title, children, width = 'max-w-md' }: 
   );
 };
 
+/**
+ * 移动端提示组件
+ * 当检测到移动端访问时，提示用户切换至桌面端以获得最佳体验
+ */
 export const MobilePrompt = ({ t }: { t: any }) => (
   <div className="h-screen w-screen bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center p-6 text-center md:hidden transition-colors duration-200">
     <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-500/20 rounded-2xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-6">

@@ -7,6 +7,10 @@ interface PromotionPendingProps {
   onBack: () => void;
 }
 
+/**
+ * 推广申请审核中组件
+ * 提示用户申请已提交，正在人工审核中
+ */
 export const PromotionPending = ({ t, onBack }: PromotionPendingProps) => {
   return (
     <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

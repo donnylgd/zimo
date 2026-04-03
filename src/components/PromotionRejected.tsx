@@ -8,6 +8,10 @@ interface PromotionRejectedProps {
   onReapply: () => void;
 }
 
+/**
+ * 推广申请被驳回组件
+ * 提示用户申请未通过，并提供重新申请的入口
+ */
 export const PromotionRejected = ({ t, onBack, onReapply }: PromotionRejectedProps) => {
   return (
     <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

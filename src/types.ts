@@ -1,7 +1,7 @@
 /**
  * 页面视图状态类型
  */
-export type ViewState = 'workspace' | 'history' | 'task_detail' | 'my_plan' | 'transactions' | 'mass_send' | 'account' | 'design_system' | 'promotion_center' | 'distribution_config' | 'commission_audit' | 'invite_history' | 'reward_history' | 'alipay_info' | 'referral_dashboard' | 'promotion_apply' | 'promotion_pending' | 'promotion_rejected' | 'promotion_form';
+export type ViewState = 'workspace' | 'history' | 'task_detail' | 'my_plan' | 'transactions' | 'mass_send' | 'account' | 'design_system' | 'promotion_center' | 'invite_history' | 'reward_history' | 'alipay_info' | 'referral_dashboard' | 'promotion_apply' | 'promotion_pending' | 'promotion_rejected' | 'promotion_form';
 
 /**
  * 推广申请状态

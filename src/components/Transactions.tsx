@@ -16,6 +16,10 @@ interface TransactionsProps {
   t: Translations;
 }
 
+/**
+ * 交易记录组件
+ * 展示用户的充值和套餐购买历史
+ */
 export const Transactions = ({ transactions, onBack, t }: TransactionsProps) => {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">

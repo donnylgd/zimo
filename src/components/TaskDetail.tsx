@@ -29,6 +29,10 @@ interface TaskDetailProps {
   t: Translations;
 }
 
+/**
+ * 任务详情组件
+ * 展示特定生成任务的详细配置、生成结果列表以及导出功能
+ */
 export const TaskDetail = ({ 
   taskId, 
   filename, 
@@ -59,6 +63,11 @@ export const TaskDetail = ({
     return () => clearTimeout(timer);
   }, [taskId]);
 
+  /**
+   * 处理复制生成文案
+   * @param text 文案内容
+   * @param id 结果ID
+   */
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
@@ -66,6 +75,9 @@ export const TaskDetail = ({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  /**
+   * 处理导出任务结果为 Excel
+   */
   const handleExport = () => {
     setToast({ message: t.task_detail.exporting, type: 'info' });
     // Simulate export
