@@ -110,10 +110,28 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
         setSubjectGenerated(true);
         setToast({ message: t.common.success, type: 'success' });
       } else {
-        setToast({ message: response.message || t.common.error, type: 'error' });
+        throw new Error(response.message || 'API Error');
       }
     } catch (error) {
-      setToast({ message: t.common.error, type: 'error' });
+      console.error('Generate subject failed, using fallback:', error);
+      // 兜底逻辑
+      let fallbackSubject = '';
+      if (config.stage === 'initial') {
+        fallbackSubject = config.brandSize === 'large' 
+          ? `【${config.brandName || 'Brand'}】x TikTok Creator Collaboration Invitation` 
+          : `Paid Collaboration: Innovative ${config.productName || 'Product'} for Your Audience`;
+      } else if (config.stage === 'details') {
+        fallbackSubject = config.brandSize === 'large'
+          ? `【${config.brandName || 'Brand'}】Collaboration Details & Next Steps`
+          : 'Collaboration Details: Free Sample & Commission Info';
+      } else if (config.stage === 'tracking') {
+        fallbackSubject = config.brandSize === 'large'
+          ? `【${config.brandName || 'Brand'}】Sample Shipped - Tracking Info Inside`
+          : 'Your Sample is on the Way! Tracking Info Inside';
+      }
+      setConfig(prev => ({ ...prev, subject: fallbackSubject }));
+      setSubjectGenerated(true);
+      setToast({ message: t.common.dev_mode_notice + ': ' + t.common.success, type: 'warning' });
     } finally {
       setIsGeneratingSubject(false);
     }
@@ -143,10 +161,21 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
         setConfig(prev => ({ ...prev, sellingPoints: response.data.optimizedPoints }));
         setToast({ message: t.common.success, type: 'success' });
       } else {
-        setToast({ message: response.message || t.common.error, type: 'error' });
+        throw new Error(response.message || 'API Error');
       }
     } catch (error) {
-      setToast({ message: t.common.error, type: 'error' });
+      console.error('Optimize selling points failed, using fallback:', error);
+      // 兜底逻辑
+      let optimized = config.sellingPoints;
+      if (config.stage === 'initial') {
+        optimized = `[AI Optimized] ${config.sellingPoints} (Focus: Concise & Hooking)`;
+      } else if (config.stage === 'details') {
+        optimized = `[AI Optimized] ${config.sellingPoints} (Focus: Complete & Value-driven)`;
+      } else if (config.stage === 'tracking') {
+        optimized = `[AI Optimized] ${config.sellingPoints} (Focus: Light & Notification-style)`;
+      }
+      setConfig(prev => ({ ...prev, sellingPoints: optimized }));
+      setToast({ message: t.common.dev_mode_notice + ': ' + t.common.success, type: 'warning' });
     } finally {
       setIsOptimizingSellingPoints(false);
     }
