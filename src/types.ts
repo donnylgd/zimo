@@ -16,7 +16,7 @@ export type UploadState = 'idle' | 'parsing' | 'success' | 'format_error' | 'hea
 /**
  * 任务状态
  */
-export type TaskStatus = 'processing' | 'completed' | 'failed';
+export type TaskStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
 /**
  * 支付状态

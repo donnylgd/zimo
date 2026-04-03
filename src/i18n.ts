@@ -334,6 +334,7 @@ export const translations = {
         strategy_normal: '常规模式',
       },
       status: {
+        pending: '待处理',
         completed: '已完成',
         processing: '处理中',
         failed: '失败',
@@ -969,6 +970,7 @@ export const translations = {
         strategy_normal: 'Normal Mode',
       },
       status: {
+        pending: 'Pending',
         completed: 'Completed',
         processing: 'Processing',
         failed: 'Failed',

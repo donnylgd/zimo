@@ -101,6 +101,7 @@ export const History = ({ tasks, onViewTask, t }: HistoryProps) => {
               className="w-full md:w-auto bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 block px-3 py-2 outline-none transition-all appearance-none cursor-pointer"
             >
               <option value="all">{t.history.filter_status}</option>
+              <option value="pending">{t.history.status.pending}</option>
               <option value="completed">{t.history.status.completed}</option>
               <option value="processing">{t.history.status.processing}</option>
               <option value="failed">{t.history.status.failed}</option>
@@ -134,10 +135,12 @@ export const History = ({ tasks, onViewTask, t }: HistoryProps) => {
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105 ${
                     task.status === 'completed' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
                     task.status === 'processing' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' :
+                    task.status === 'pending' ? 'bg-slate-50 dark:bg-slate-500/10 text-slate-600 dark:text-slate-400' :
                     'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400'
                   }`}>
                     {task.status === 'completed' && <CheckCircle2 size={24} />}
                     {task.status === 'processing' && <Loader2 size={24} className="animate-spin" />}
+                    {task.status === 'pending' && <Clock size={24} />}
                     {task.status === 'failed' && <XCircle size={24} />}
                   </div>
                   
@@ -156,9 +159,10 @@ export const History = ({ tasks, onViewTask, t }: HistoryProps) => {
                         <span className={`text-[10px] px-2.5 py-1 rounded-lg font-bold uppercase tracking-tight ${
                           task.status === 'completed' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' :
                           task.status === 'processing' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400' :
+                          task.status === 'pending' ? 'bg-slate-50 dark:bg-slate-500/10 text-slate-700 dark:text-slate-400' :
                           'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400'
                         }`}>
-                          {task.status === 'completed' ? t.history.status.completed : task.status === 'processing' ? t.history.status.processing : t.history.status.failed}
+                          {task.status === 'completed' ? t.history.status.completed : task.status === 'processing' ? t.history.status.processing : task.status === 'pending' ? t.history.status.pending : t.history.status.failed}
                         </span>
                       </div>
                     </div>

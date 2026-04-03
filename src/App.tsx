@@ -22,6 +22,7 @@ import { Modal, Toast, MobilePrompt, ToastType } from './components/Shared';
 import { QrCode, Loader2, CheckCircle2, AlertCircle, Eye, EyeOff, Settings, ClipboardCheck } from 'lucide-react';
 import { translations, Language } from './i18n';
 import { AnimatePresence, motion } from 'motion/react';
+import { taskService } from './services/api';
 
 // 模拟数据
 const MOCK_TASKS: Task[] = [
@@ -981,38 +982,65 @@ function App() {
   /**
    * 处理开始生成逻辑
    */
-  const handleStartGenerate = (file: File, config: any) => {
+  const handleStartGenerate = async (file: File, config: any) => {
     if (!user) return;
     
-    // 扣除配额
-    if (user.quota !== 'unlimited') {
-      setUser({ ...user, quota: user.quota - 1 });
+    setToast({ message: t.common.loading_generating, type: 'info' });
+
+    try {
+      const response = await taskService.createTask({
+        importMode: config.singleCreator ? 'single' : 'batch',
+        singleCreator: config.singleCreator,
+        config: config
+      });
+
+      if (response.code === 200) {
+        // 扣除配额
+        if (user.quota !== 'unlimited') {
+          setUser({ ...user, quota: user.quota - 1 });
+        }
+
+        const newTask: Task = {
+          id: response.data.taskId,
+          filename: file.name,
+          date: new Date().toLocaleString(),
+          status: response.data.status,
+          total: 100,
+          completed: 0,
+          style: config.tone,
+          stage: config.stage,
+          subject: config.subject,
+          brandSize: config.brandSize,
+          enableFirstSentenceStrategy: config.enableFirstSentenceStrategy,
+          firstSentenceValues: config.firstSentenceValues
+        };
+
+        setTasks([newTask, ...tasks]);
+        setCurrentView('history');
+        setToast({ message: t.workspace.generating_msg, type: 'success' });
+        
+        // 模拟任务进度（如果后端是异步的，这里可以轮询，但为了演示，我们保留模拟进度）
+        if (response.data.status === 'processing') {
+          let progress = 0;
+          const interval = setInterval(() => {
+            progress += 20;
+            setTasks(prev => prev.map(task => 
+              task.id === response.data.taskId 
+                ? { ...task, completed: Math.min(100, progress), status: progress >= 100 ? 'completed' : 'processing' } 
+                : task
+            ));
+            if (progress >= 100) {
+              clearInterval(interval);
+              setToast({ message: `${t.workspace.title} ${file.name} ${t.history.status.completed}`, type: 'success' });
+            }
+          }, 1000);
+        }
+      } else {
+        setToast({ message: response.message || t.common.error, type: 'error' });
+      }
+    } catch (error) {
+      setToast({ message: t.common.error, type: 'error' });
     }
-
-    const newTask: Task = {
-      id: `t${Date.now()}`,
-      filename: file.name,
-      date: new Date().toLocaleString(),
-      status: 'processing',
-      total: 100,
-      completed: 0,
-      style: config.tone,
-      stage: config.stage,
-      subject: config.subject,
-      brandSize: config.brandSize,
-      enableFirstSentenceStrategy: config.enableFirstSentenceStrategy,
-      firstSentenceValues: config.firstSentenceValues
-    };
-    
-    setTasks([newTask, ...tasks]);
-    setCurrentView('history');
-    setToast({ message: t.workspace.generating_msg, type: 'success' });
-
-    // 模拟生成完成
-    setTimeout(() => {
-      setTasks(prev => prev.map(t => t.id === newTask.id ? { ...t, status: 'completed', completed: 100 } : t));
-      setToast({ message: `${t.workspace.title} ${file.name} ${t.history.status.completed}`, type: 'success' });
-    }, 3000);
   };
 
   /**

@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx';
 import { UserProfile, UploadState } from '../types';
 import { ToastType } from './Shared';
 import { Translations } from '../i18n';
+import { aiService } from '../services/api';
 
 type Stage = 'initial' | 'details' | 'tracking';
 
@@ -88,38 +89,40 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
   /**
    * 处理 AI 生成邮件标题
    */
-  const handleGenerateSubject = () => {
+  const handleGenerateSubject = async () => {
     if (!config.stage || !config.brandSize) {
       setShowValidation(true);
       return;
     }
     setIsGeneratingSubject(true);
     setToast({ message: t.common.loading_ai_subject, type: 'info' });
-    setTimeout(() => {
-      let newSubject = '';
-      if (config.stage === 'initial') {
-        newSubject = config.brandSize === 'large' 
-          ? '【Brand Name】x TikTok Creator Collaboration Invitation' 
-          : 'Paid Collaboration: Innovative Product for Your Audience';
-      } else if (config.stage === 'details') {
-        newSubject = config.brandSize === 'large'
-          ? '【Brand Name】Collaboration Details & Next Steps'
-          : 'Collaboration Details: Free Sample & Commission Info';
-      } else if (config.stage === 'tracking') {
-        newSubject = config.brandSize === 'large'
-          ? '【Brand Name】Sample Shipped - Tracking Info Inside'
-          : 'Your Sample is on the Way! Tracking Info Inside';
+    
+    try {
+      const response = await aiService.generateSubject({
+        stage: config.stage,
+        brandSize: config.brandSize,
+        brandName: config.brandName,
+        productName: config.productName
+      });
+      
+      if (response.code === 200) {
+        setConfig(prev => ({ ...prev, subject: response.data.subject }));
+        setSubjectGenerated(true);
+        setToast({ message: t.common.success, type: 'success' });
+      } else {
+        setToast({ message: response.message || t.common.error, type: 'error' });
       }
-      setConfig(prev => ({ ...prev, subject: newSubject }));
-      setSubjectGenerated(true);
+    } catch (error) {
+      setToast({ message: t.common.error, type: 'error' });
+    } finally {
       setIsGeneratingSubject(false);
-    }, 800);
+    }
   };
 
   /**
    * 处理 AI 优化产品卖点
    */
-  const handleOptimizeSellingPoints = () => {
+  const handleOptimizeSellingPoints = async () => {
     if (!config.sellingPoints) {
       setShowValidation(true);
       return;
@@ -128,18 +131,25 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
     
     setIsOptimizingSellingPoints(true);
     setToast({ message: t.common.loading_ai_points, type: 'info' });
-    setTimeout(() => {
-      let optimized = config.sellingPoints;
-      if (config.stage === 'initial') {
-        optimized = `[AI Optimized - Initial] ${config.sellingPoints} (Focus: Concise & Hooking)`;
-      } else if (config.stage === 'details') {
-        optimized = `[AI Optimized - Details] ${config.sellingPoints} (Focus: Complete & Value-driven)`;
-      } else if (config.stage === 'tracking') {
-        optimized = `[AI Optimized - Tracking] ${config.sellingPoints} (Focus: Light & Notification-style)`;
+    
+    try {
+      const response = await aiService.optimizeSellingPoints({
+        stage: config.stage,
+        sellingPoints: config.sellingPoints,
+        productName: config.productName
+      });
+      
+      if (response.code === 200) {
+        setConfig(prev => ({ ...prev, sellingPoints: response.data.optimizedPoints }));
+        setToast({ message: t.common.success, type: 'success' });
+      } else {
+        setToast({ message: response.message || t.common.error, type: 'error' });
       }
-      setConfig(prev => ({ ...prev, sellingPoints: optimized }));
+    } catch (error) {
+      setToast({ message: t.common.error, type: 'error' });
+    } finally {
       setIsOptimizingSellingPoints(false);
-    }, 1000);
+    }
   };
 
   /**
