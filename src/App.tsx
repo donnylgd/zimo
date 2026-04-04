@@ -1,3 +1,7 @@
+/**
+ * App.tsx
+ * 应用程序主入口文件，负责全局状态管理、路由分发、用户认证逻辑以及全局弹窗控制。
+ */
 import React, { useState, useEffect } from 'react';
 import { ViewState, UserProfile, PaymentState, PromotionStatus } from './types';
 import { Layout } from './components/Layout';
@@ -10,6 +14,7 @@ import { MassSend } from './components/MassSend';
 import { AccountCenter } from './components/AccountCenter';
 import { DesignSystem } from './components/DesignSystem';
 import { PromotionCenter } from './components/PromotionCenter';
+import { WithdrawalForm } from './components/WithdrawalForm';
 import { InviteHistory } from './components/InviteHistory';
 import { RewardHistory } from './components/RewardHistory';
 import { AlipayInfo } from './components/AlipayInfo';
@@ -26,8 +31,11 @@ import { taskService } from './services/api';
 
 // 模拟数据
 const MOCK_TASKS: Task[] = [
-  { id: 't1', filename: 'influencers_tech.csv', date: '2024-03-20 14:30', status: 'completed', total: 150, completed: 150, style: 'professional', stage: 'initial', subject: 'Paid Collaboration: Innovative Tech Gadget for Your Audience', brandSize: 'large', enableFirstSentenceStrategy: true, firstSentenceValues: ['data'] },
-  { id: 't2', filename: 'beauty_creators_us.csv', date: '2024-03-19 09:15', status: 'failed', total: 500, completed: 120, style: 'casual', stage: 'details', subject: '【Brand Name】Collaboration Details & Next Steps', brandSize: 'small', enableFirstSentenceStrategy: false },
+  { id: 't1', filename: 'influencers_tech.csv', date: '2024-03-20 14:30', status: 'completed', total: 150, completed: 150, successCount: 148, failedCount: 2, style: 'professional', stage: 'initial', subject: 'Paid Collaboration: Innovative Tech Gadget for Your Audience', brandSize: 'large', enableFirstSentenceStrategy: true, firstSentenceValues: ['data'] },
+  { id: 't2', filename: 'beauty_creators_us.csv', date: '2024-03-19 09:15', status: 'failed', total: 500, completed: 120, successCount: 110, failedCount: 10, style: 'casual', stage: 'details', subject: '【Brand Name】Collaboration Details & Next Steps', brandSize: 'small', enableFirstSentenceStrategy: false },
+  { id: 't3', filename: 'fashion_vloggers_uk.xlsx', date: '2024-03-21 10:05', status: 'processing', total: 200, completed: 85, successCount: 80, failedCount: 5, style: 'friendly', stage: 'initial', subject: 'Fashion Week Special: Collaboration Opportunity', brandSize: 'small', enableFirstSentenceStrategy: true, firstSentenceValues: ['style'] },
+  { id: 't4', filename: 'gaming_streamers.csv', date: '2024-03-21 11:20', status: 'queued', total: 300, completed: 0, successCount: 0, failedCount: 0, style: 'bold', stage: 'details', subject: 'Level Up Your Stream with Our New Gaming Gear', brandSize: 'large', enableFirstSentenceStrategy: false },
+  { id: 't5', filename: 'home_decor_experts.csv', date: '2024-03-21 12:45', status: 'partial', total: 100, completed: 92, successCount: 88, failedCount: 4, style: 'professional', stage: 'initial', subject: 'Elevate Your Home Aesthetic with Our Collection', brandSize: 'small', enableFirstSentenceStrategy: true, firstSentenceValues: ['design'] },
 ];
 
 // 模拟生成结果数据
@@ -48,10 +56,15 @@ const MOCK_RESULTS: TaskResult[] = [
 
 /**
  * 登录内容组件
- * 处理验证码登录和密码登录逻辑
+ * 
+ * @param t 国际化翻译对象
+ * @param onLogin 登录成功回调函数
+ * @param onForgotPassword 点击忘记密码回调函数
+ * 
+ * 处理验证码登录和密码登录两种模式的切换、输入校验及发送验证码逻辑。
  */
 function LoginContent({ t, onLogin, onForgotPassword }: { t: any, onLogin: () => void, onForgotPassword: (phone: string) => void }) {
-  const [loginMode, setLoginMode] = useState<'code' | 'password'>('code');
+  const [loginMode, setLoginMode] = useState<'code' | 'password'>('password');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
@@ -93,7 +106,10 @@ function LoginContent({ t, onLogin, onForgotPassword }: { t: any, onLogin: () =>
   };
 
   /**
-   * 校验表单是否有效
+   * 校验登录表单是否有效
+   * 
+   * 根据当前登录模式（验证码/密码）判断必填项是否已填写且符合格式要求。
+   * @returns {boolean} 是否允许提交登录
    */
   const isFormValid = loginMode === 'code' 
     ? phone.length === 11 && code.length === 6 && (!showCaptcha || captcha.length === 4)
@@ -103,16 +119,16 @@ function LoginContent({ t, onLogin, onForgotPassword }: { t: any, onLogin: () =>
     <div className="py-4">
       <div className="flex bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl mb-6">
         <button 
-          onClick={() => setLoginMode('code')}
-          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${loginMode === 'code' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
-        >
-          {t.user.login_switch_code}
-        </button>
-        <button 
           onClick={() => setLoginMode('password')}
           className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${loginMode === 'password' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
         >
           {t.user.login_switch_password}
+        </button>
+        <button 
+          onClick={() => setLoginMode('code')}
+          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${loginMode === 'code' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+        >
+          {t.user.login_switch_code}
         </button>
       </div>
 
@@ -186,29 +202,40 @@ function LoginContent({ t, onLogin, onForgotPassword }: { t: any, onLogin: () =>
             </div>
           </>
         ) : (
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between ml-1">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t.user.login_password}</label>
-              <button 
-                onClick={() => onForgotPassword(phone)}
-                className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
-              >
-                {t.user.login_forgot_password}
-              </button>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between ml-1">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t.user.login_password}</label>
+                <button 
+                  onClick={() => onForgotPassword(phone)}
+                  className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+                >
+                  {t.user.login_forgot_password}
+                </button>
+              </div>
+              <div className="relative">
+                <input 
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={t.user.login_password_placeholder}
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 dark:text-white pr-10"
+                />
+                <button 
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
-            <div className="relative">
-              <input 
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t.user.login_password_placeholder}
-                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-900 dark:text-white pr-10"
-              />
+            <div className="flex items-center justify-center gap-1 text-xs text-slate-500">
+              <span>{t.user.login_no_account}</span>
               <button 
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                onClick={() => setLoginMode('code')}
+                className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
               >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {t.user.login_register}
               </button>
             </div>
           </div>
@@ -230,7 +257,14 @@ function LoginContent({ t, onLogin, onForgotPassword }: { t: any, onLogin: () =>
 
 /**
  * 忘记密码内容组件
- * 支持手机号和邮箱找回
+ * 
+ * @param t 国际化翻译对象
+ * @param initialPhone 初始手机号（可选）
+ * @param onReset 重置成功回调函数
+ * @param onCancel 取消/返回回调函数
+ * @param onGoBind 跳转到绑定/登录回调函数
+ * 
+ * 支持通过手机号或邮箱找回密码，包含验证码发送、新密码强度校验及确认密码一致性检查。
  */
 function ForgotPasswordContent({ t, phone: initialPhone, onReset, onCancel, onGoBind }: { t: any, phone?: string, onReset: () => void, onCancel: () => void, onGoBind: () => void }) {
   const [method, setMethod] = useState<'phone' | 'email'>('phone');
@@ -244,6 +278,8 @@ function ForgotPasswordContent({ t, phone: initialPhone, onReset, onCancel, onGo
 
   /**
    * 处理发送重置验证码逻辑
+   * 
+   * 模拟异步发送验证码过程，成功后开启 60s 倒计时。
    */
   const handleSendCode = () => {
     setIsSending(true);
@@ -263,8 +299,12 @@ function ForgotPasswordContent({ t, phone: initialPhone, onReset, onCancel, onGo
   };
 
   /**
-   * 获取密码错误信息
-   * @param pass 密码字符串
+   * 校验密码强度及合法性
+   * 
+   * @param pass 待校验的密码字符串
+   * @returns {string} 错误信息，若校验通过则返回空字符串
+   * 
+   * 校验规则：不能包含空格、长度 8-20 位、必须包含字母和数字、不能是过于简单的常用密码。
    */
   const getPasswordError = (pass: string) => {
     if (!pass) return '';
@@ -420,7 +460,13 @@ function ForgotPasswordContent({ t, phone: initialPhone, onReset, onCancel, onGo
 
 /**
  * 设置密码内容组件
- * 用于首次设置登录密码
+ * 
+ * @param t 国际化翻译对象
+ * @param initialPhone 用户手机号
+ * @param onSet 设置成功回调函数
+ * @param onCancel 取消回调函数
+ * 
+ * 用于新用户首次登录后设置登录密码，确保账号安全。
  */
 function SetPasswordContent({ t, phone: initialPhone, onSet, onCancel }: { t: any, phone?: string, onSet: () => void, onCancel: () => void }) {
   const [code, setCode] = useState('');
@@ -432,7 +478,9 @@ function SetPasswordContent({ t, phone: initialPhone, onSet, onCancel }: { t: an
   const [isSending, setIsSending] = useState(false);
 
   /**
-   * 处理发送验证码逻辑
+   * 处理发送设置密码验证码逻辑
+   * 
+   * 模拟发送逻辑并开启倒计时。
    */
   const handleSendCode = () => {
     setIsSending(true);
@@ -452,8 +500,12 @@ function SetPasswordContent({ t, phone: initialPhone, onSet, onCancel }: { t: an
   };
 
   /**
-   * 获取密码错误信息
-   * @param pass 密码字符串
+   * 校验密码强度及合法性
+   * 
+   * @param pass 待校验的密码字符串
+   * @returns {string} 错误信息，若校验通过则返回空字符串
+   * 
+   * 校验规则：不能包含空格、长度 8-20 位、必须包含字母和数字、不能是过于简单的常用密码。
    */
   const getPasswordError = (pass: string) => {
     if (!pass) return '';
@@ -566,7 +618,14 @@ function SetPasswordContent({ t, phone: initialPhone, onSet, onCancel }: { t: an
 
 /**
  * 修改密码内容组件
- * 支持手机号和邮箱验证后修改
+ * 
+ * @param t 国际化翻译对象
+ * @param user 当前登录用户信息
+ * @param onSet 修改成功回调函数
+ * @param onCancel 取消回调函数
+ * @param onGoBind 跳转到绑定邮箱回调函数
+ * 
+ * 已登录用户在个人中心修改密码，支持手机和邮箱两种验证方式。
  */
 function ChangePasswordContent({ t, user, onSet, onCancel, onGoBind }: { t: any, user: UserProfile | null, onSet: () => void, onCancel: () => void, onGoBind: () => void }) {
   const [method, setMethod] = useState<'phone' | 'email'>('phone');
@@ -579,7 +638,7 @@ function ChangePasswordContent({ t, user, onSet, onCancel, onGoBind }: { t: any,
   const [isSending, setIsSending] = useState(false);
 
   /**
-   * 处理发送验证码逻辑
+   * 处理发送修改密码验证码逻辑
    */
   const handleSendCode = () => {
     setIsSending(true);
@@ -599,8 +658,12 @@ function ChangePasswordContent({ t, user, onSet, onCancel, onGoBind }: { t: any,
   };
 
   /**
-   * 获取密码错误信息
-   * @param pass 密码字符串
+   * 校验密码强度及合法性
+   * 
+   * @param pass 待校验的密码字符串
+   * @returns {string} 错误信息，若校验通过则返回空字符串
+   * 
+   * 校验规则：不能包含空格、长度 8-20 位、必须包含字母和数字、不能是过于简单的常用密码。
    */
   const getPasswordError = (pass: string) => {
     if (!pass) return '';
@@ -753,7 +816,11 @@ function ChangePasswordContent({ t, user, onSet, onCancel, onGoBind }: { t: any,
 
 /**
  * 绑定邮箱内容组件
- * 用于账号安全和找回密码
+ * 
+ * @param t 国际化翻译对象
+ * @param onBind 绑定成功回调函数
+ * 
+ * 引导用户绑定邮箱，用于账号安全找回和接收重要通知。
  */
 function BindEmailContent({ t, onBind }: { t: any, onBind: (email: string) => void }) {
   const [email, setEmail] = useState('');
@@ -763,6 +830,8 @@ function BindEmailContent({ t, onBind }: { t: any, onBind: (email: string) => vo
 
   /**
    * 处理发送邮箱验证码逻辑
+   * 
+   * 校验邮箱格式后模拟发送验证码。
    */
   const handleSendCode = () => {
     if (!email || !email.includes('@')) return;
@@ -783,7 +852,9 @@ function BindEmailContent({ t, onBind }: { t: any, onBind: (email: string) => vo
   };
 
   /**
-   * 校验表单是否有效
+   * 校验绑定邮箱表单是否有效
+   * 
+   * @returns {boolean} 是否允许提交绑定
    */
   const isFormValid = email.includes('@') && code.length === 6;
 
@@ -841,21 +912,27 @@ function BindEmailContent({ t, onBind }: { t: any, onBind: (email: string) => vo
 
 /**
  * 应用程序根组件
- * 管理全局状态、路由和弹窗
+ * 
+ * 负责：
+ * 1. 全局状态管理：用户信息、任务列表、语言、主题、视图切换。
+ * 2. 路由分发：根据 currentView 渲染不同的页面组件。
+ * 3. 用户认证逻辑：登录、注册、找回密码、修改密码、绑定邮箱。
+ * 4. 业务逻辑：创建生成任务、购买套餐、支付模拟。
+ * 5. 全局 UI 控制：弹窗 (Modal)、提示 (Toast)、移动端适配提示。
  */
 function App() {
-  const [currentView, setCurrentView] = useState<ViewState>('workspace');
-  const [promotionStatus, setPromotionStatus] = useState<PromotionStatus>('none');
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS);
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [language, setLanguage] = useState<Language>('zh');
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [currentView, setCurrentView] = useState<ViewState>('workspace'); // 当前主视图
+  const [promotionStatus, setPromotionStatus] = useState<PromotionStatus>('none'); // 推广状态
+  const [user, setUser] = useState<UserProfile | null>(null); // 当前登录用户信息
+  const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS); // 任务历史列表
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null); // 当前查看详情的任务 ID
+  const [transactions, setTransactions] = useState<any[]>([]); // 充值交易记录
+  const [language, setLanguage] = useState<Language>('zh'); // 当前语言
+  const [isDarkMode, setIsDarkMode] = useState(false); // 是否为深色模式
   
-  const t = translations[language];
+  const t = translations[language]; // 翻译资源对象
 
-  // 处理深色模式切换
+  // 处理深色模式切换的副作用
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -864,7 +941,7 @@ function App() {
     }
   }, [isDarkMode]);
   
-  // 弹窗状态
+  // 弹窗显隐控制状态
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
   const [forgotPasswordPhone, setForgotPasswordPhone] = useState('');
@@ -879,7 +956,9 @@ function App() {
 
   // 处理函数
   /**
-   * 切换语言
+   * 切换界面语言
+   * 
+   * 在中文 (zh) 和英文 (en) 之间切换，并弹出提示。
    */
   const toggleLanguage = () => {
     const newLang = language === 'zh' ? 'en' : 'zh';
@@ -891,7 +970,9 @@ function App() {
   };
 
   /**
-   * 切换深色模式
+   * 切换深色/浅色模式
+   * 
+   * 切换全局主题颜色，并弹出提示。
    */
   const toggleDarkMode = () => {
     const newMode = !isDarkMode;
@@ -903,7 +984,9 @@ function App() {
   };
 
   /**
-   * 处理登录逻辑
+   * 处理登录成功逻辑
+   * 
+   * 关闭登录弹窗，初始化模拟用户信息，并弹出成功提示。
    */
   const handleLogin = () => {
     setIsLoginModalOpen(false);
@@ -911,7 +994,7 @@ function App() {
       id: 'ZIMO_8269527',
       name: 'Donny Li',
       avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Donny',
-      quota: 3240,
+      quota: 324,
       usedQuota: 1760,
       plan: 'basic',
       planStartDate: '2024-03-01',
@@ -925,7 +1008,9 @@ function App() {
   };
 
   /**
-   * 处理重置密码逻辑
+   * 处理重置密码成功逻辑
+   * 
+   * 关闭忘记密码弹窗，并弹出成功提示。
    */
   const handleResetPassword = () => {
     setIsForgotPasswordModalOpen(false);
@@ -933,7 +1018,9 @@ function App() {
   };
 
   /**
-   * 处理设置密码逻辑
+   * 处理首次设置密码成功逻辑
+   * 
+   * 更新用户状态为已设置密码，关闭弹窗并提示。
    */
   const handleSetPassword = () => {
     if (user) {
@@ -944,7 +1031,9 @@ function App() {
   };
 
   /**
-   * 处理更新密码逻辑
+   * 处理修改密码成功逻辑
+   * 
+   * 关闭修改密码弹窗并提示。
    */
   const handleUpdatePassword = () => {
     setIsChangePasswordModalOpen(false);
@@ -952,7 +1041,11 @@ function App() {
   };
 
   /**
-   * 处理绑定邮箱逻辑
+   * 处理绑定邮箱成功逻辑
+   * 
+   * @param email 绑定的邮箱地址
+   * 
+   * 更新用户信息中的邮箱字段，关闭弹窗并提示。
    */
   const handleBindEmail = (email: string) => {
     if (user) {
@@ -963,14 +1056,18 @@ function App() {
   };
 
   /**
-   * 处理退出登录逻辑
+   * 触发退出登录确认
+   * 
+   * 打开退出登录二次确认弹窗。
    */
   const handleLogout = () => {
     setIsLogoutConfirmOpen(true);
   };
 
   /**
-   * 确认退出登录
+   * 确认并执行退出登录
+   * 
+   * 清除用户信息，返回工作台视图，关闭确认窗并提示。
    */
   const confirmLogout = () => {
     setUser(null);
@@ -980,13 +1077,21 @@ function App() {
   };
 
   /**
-   * 处理开始生成逻辑
+   * 处理开始生成建联文案任务
+   * 
+   * @param file 上传的 CSV/Excel 文件对象
+   * @param config 生成配置（包含语气、阶段、品牌规模等）
+   * @returns {Promise<string | null>} 返回创建的任务 ID，若失败则返回 null
+   * 
+   * 业务逻辑：
+   * 1. 调用任务服务创建异步任务。
+   * 2. 成功后扣除用户配额，并将新任务添加到历史列表顶部。
+   * 3. 若任务状态为 processing，则开启前端模拟进度更新逻辑。
+   * 4. 包含 API 调用失败时的模拟兜底逻辑。
    */
   const handleStartGenerate = async (file: File, config: any) => {
-    if (!user) return;
+    if (!user) return null;
     
-    setToast({ message: t.common.loading_generating, type: 'info' });
-
     try {
       const response = await taskService.createTask({
         importMode: config.singleCreator ? 'single' : 'batch',
@@ -1007,6 +1112,8 @@ function App() {
           status: response.data.status,
           total: 100,
           completed: 0,
+          successCount: 0,
+          failedCount: 0,
           style: config.tone,
           stage: config.stage,
           subject: config.subject,
@@ -1016,8 +1123,7 @@ function App() {
         };
 
         setTasks([newTask, ...tasks]);
-        setCurrentView('history');
-        setToast({ message: t.workspace.generating_msg, type: 'success' });
+        // setCurrentView('history');
         
         // 模拟任务进度（如果后端是异步的，这里可以轮询，但为了演示，我们保留模拟进度）
         if (response.data.status === 'processing') {
@@ -1026,15 +1132,21 @@ function App() {
             progress += 20;
             setTasks(prev => prev.map(task => 
               task.id === response.data.taskId 
-                ? { ...task, completed: Math.min(100, progress), status: progress >= 100 ? 'completed' : 'processing' } 
+                ? { 
+                    ...task, 
+                    completed: Math.min(100, progress), 
+                    successCount: Math.floor(Math.min(100, progress) * 0.95),
+                    failedCount: Math.floor(Math.min(100, progress) * 0.05),
+                    status: progress >= 100 ? 'completed' : 'processing' 
+                  } 
                 : task
             ));
             if (progress >= 100) {
               clearInterval(interval);
-              setToast({ message: `${t.workspace.title} ${file.name} ${t.history.status.completed}`, type: 'success' });
             }
           }, 1000);
         }
+        return response.data.taskId;
       } else {
         throw new Error(response.message || 'API Error');
       }
@@ -1053,6 +1165,8 @@ function App() {
         status: 'processing',
         total: 100,
         completed: 0,
+        successCount: 0,
+        failedCount: 0,
         style: config.tone,
         stage: config.stage,
         subject: config.subject,
@@ -1062,19 +1176,25 @@ function App() {
       };
 
       setTasks([newTask, ...tasks]);
-      setCurrentView('history');
-      setToast({ message: t.common.dev_mode_notice + ': ' + t.workspace.generating_msg, type: 'warning' });
+      // setCurrentView('history');
 
       // 模拟生成完成
       setTimeout(() => {
-        setTasks(prev => prev.map(t => t.id === mockTaskId ? { ...t, status: 'completed', completed: 100 } : t));
-        setToast({ message: `${t.workspace.title} ${file.name} ${t.history.status.completed}`, type: 'success' });
+        setTasks(prev => prev.map(t => t.id === mockTaskId ? { ...t, status: 'completed', completed: 100, successCount: 98, failedCount: 2 } : t));
       }, 3000);
+      return mockTaskId;
     }
   };
 
   /**
-   * 处理购买套餐逻辑
+   * 处理购买会员套餐逻辑
+   * 
+   * @param planId 套餐 ID（basic 或 pro）
+   * 
+   * 业务逻辑：
+   * 1. 打开支付弹窗并进入等待支付状态。
+   * 2. 模拟 3 秒支付延迟，成功后更新用户等级、配额及有效期。
+   * 3. 记录交易流水并弹出成功提示。
    */
   const handleBuyPlan = (planId: string) => {
     setSelectedPlan(planId);
@@ -1125,15 +1245,17 @@ function App() {
           isDarkMode={isDarkMode}
           setIsDarkMode={toggleDarkMode}
         >
-          {currentView === 'workspace' && (
+          <div className={currentView === 'workspace' ? 'block' : 'hidden'}>
             <Workspace 
               user={user} 
               onLoginClick={() => setIsLoginModalOpen(true)} 
               onStartGenerate={handleStartGenerate} 
               setToast={setToast}
+              onChangeView={setCurrentView}
+              currentView={currentView}
               t={t}
             />
-          )}
+          </div>
           
           {currentView === 'history' && (
             <History 
@@ -1155,6 +1277,10 @@ function App() {
               style={tasks.find(t => t.id === selectedTaskId)?.style}
               date={tasks.find(t => t.id === selectedTaskId)?.date}
               status={tasks.find(t => t.id === selectedTaskId)?.status}
+              total={tasks.find(t => t.id === selectedTaskId)?.total}
+              completed={tasks.find(t => t.id === selectedTaskId)?.completed}
+              successCount={tasks.find(t => t.id === selectedTaskId)?.successCount}
+              failedCount={tasks.find(t => t.id === selectedTaskId)?.failedCount}
               brandSize={tasks.find(t => t.id === selectedTaskId)?.brandSize}
               enableFirstSentenceStrategy={tasks.find(t => t.id === selectedTaskId)?.enableFirstSentenceStrategy}
               firstSentenceValues={tasks.find(t => t.id === selectedTaskId)?.firstSentenceValues}
@@ -1205,6 +1331,7 @@ function App() {
               onSetPassword={() => setIsSetPasswordModalOpen(true)}
               onChangePassword={() => setIsChangePasswordModalOpen(true)}
               onBindEmail={() => setIsBindEmailModalOpen(true)}
+              onViewPromotion={() => setCurrentView('promotion_center')}
               setToast={setToast}
               t={t}
             />
@@ -1214,9 +1341,9 @@ function App() {
             <DesignSystem />
           )}
 
-          {currentView === 'promotion_center' && (
+          {currentView === 'promotion_center' && user && (
             promotionStatus === 'approved' ? (
-              <PromotionCenter t={t} setToast={setToast} onChangeView={setCurrentView} />
+              <PromotionCenter user={user} t={t} setToast={setToast} onChangeView={setCurrentView} />
             ) : (
               <ReferralDashboard t={t} onChangeView={setCurrentView} promotionStatus={promotionStatus} setPromotionStatus={setPromotionStatus} />
             )
@@ -1280,6 +1407,16 @@ function App() {
 
           {currentView === 'alipay_info' && (
             <AlipayInfo t={t} onBack={() => setCurrentView('promotion_center')} setToast={setToast} />
+          )}
+          
+          {currentView === 'withdrawal_form' && user && (
+            <WithdrawalForm 
+              user={user} 
+              t={t} 
+              onBack={() => setCurrentView('promotion_center')} 
+              onSuccess={() => setCurrentView('reward_history')}
+              setToast={setToast}
+            />
           )}
         </Layout>
 

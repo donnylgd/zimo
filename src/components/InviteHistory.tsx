@@ -31,11 +31,11 @@ export const InviteHistory = ({ t, onBack }: InviteHistoryProps) => {
   ];
 
   const mockData = [
-    { id: 1, user: '138****8888', time: '2024-03-20 14:30', status: 'paid', is_activated: true, is_paid: true, reward: language === 'zh' ? '50 额度 + 10% 佣金' : '50 Quota + 10% Comm.' },
-    { id: 2, user: '155****6666', time: '2024-03-21 09:15', status: 'activated', is_activated: true, is_paid: false, reward: language === 'zh' ? '20 额度' : '20 Quota' },
+    { id: 1, user: '138****8888', time: '2024-03-20 14:30', status: 'paid', is_activated: true, is_paid: true, reward: language === 'zh' ? '50 算力 + 10% 佣金' : '50 Credits + 10% Comm.' },
+    { id: 2, user: '155****6666', time: '2024-03-21 09:15', status: 'activated', is_activated: true, is_paid: false, reward: language === 'zh' ? '20 算力' : '20 Credits' },
     { id: 3, user: '177****2222', time: '2024-03-22 18:45', status: 'registered', is_activated: false, is_paid: false, reward: '-' },
     { id: 4, user: '133****1111', time: '2024-03-15 10:00', status: 'expired', is_activated: false, is_paid: false, reward: '-' },
-    { id: 5, user: '189****9999', time: '2024-03-25 11:20', status: 'paid', is_activated: true, is_paid: true, reward: language === 'zh' ? '50 额度 + 10% 佣金' : '50 Quota + 10% Comm.' },
+    { id: 5, user: '189****9999', time: '2024-03-25 11:20', status: 'paid', is_activated: true, is_paid: true, reward: language === 'zh' ? '50 算力 + 10% 佣金' : '50 Credits + 10% Comm.' },
   ];
 
   const filteredData = activeTab === 'all' ? mockData : mockData.filter(item => item.status === activeTab);

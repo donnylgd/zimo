@@ -2,7 +2,10 @@ import React from 'react';
 import { Megaphone, ArrowLeft, Copy, ExternalLink, Users, UserCheck, CreditCard, Coins, Clock, CheckCircle2, History, Wallet, ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
 
+import { UserProfile } from '../types';
+
 interface PromotionCenterProps {
+  user: UserProfile;
   t: any;
   onBack?: () => void;
   setToast?: (toast: { message: string, type: 'success' | 'error' | 'info' | 'warning' } | null) => void;
@@ -13,7 +16,7 @@ interface PromotionCenterProps {
  * 推广中心组件
  * 审核通过后，用户查看推广数据、生成推广链接的核心页面
  */
-export const PromotionCenter = ({ t, onBack, setToast, onChangeView }: PromotionCenterProps) => {
+export const PromotionCenter = ({ user, t, onBack, setToast, onChangeView }: PromotionCenterProps) => {
   const [isLoading, setIsLoading] = React.useState(true);
   
   // Helper to get language (hacky but works for demo)
@@ -47,8 +50,8 @@ export const PromotionCenter = ({ t, onBack, setToast, onChangeView }: Promotion
     { label: t.promotion_center.stats.total_invited, value: '128', icon: Users, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-500/10' },
     { label: t.promotion_center.stats.total_activated, value: '96', icon: UserCheck, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
     { label: t.promotion_center.stats.total_paid, value: '42', icon: CreditCard, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
-    { label: t.promotion_center.stats.total_quota, value: '500', icon: Sparkles, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-500/10', unit: t.my_plan.unit },
-    { label: t.promotion_center.stats.total_commission, value: '¥1,280.00', icon: Coins, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-500/10', highlight: true },
+    { label: t.promotion_center.stats.total_quota, value: (user.referralRewards || 0).toString(), icon: Sparkles, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-500/10', unit: t.my_plan.unit },
+    { label: t.promotion_center.stats.total_commission, value: `¥${(user.referralBalance || 0).toFixed(2)}`, icon: Coins, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-500/10', highlight: true },
     { label: t.promotion_center.stats.pending_audit, value: '¥150.00', icon: Clock, color: 'text-slate-400', bg: 'bg-slate-50 dark:bg-slate-500/10' },
     { label: t.promotion_center.stats.pending_payment, value: '¥320.00', icon: Wallet, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-500/10' },
     { label: t.promotion_center.stats.paid_commission, value: '¥810.00', icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
@@ -56,7 +59,7 @@ export const PromotionCenter = ({ t, onBack, setToast, onChangeView }: Promotion
 
   const quickLinks = [
     { id: 'invite_history', label: t.promotion_center.quick_links.invite_history, icon: History, desc: language === 'zh' ? '查看已邀请的用户列表' : 'View list of invited users' },
-    { id: 'reward_history', label: t.promotion_center.quick_links.reward_history, icon: Coins, desc: language === 'zh' ? '查看佣金与额度奖励明细' : 'View commission and quota details' },
+    { id: 'reward_history', label: t.promotion_center.quick_links.reward_history, icon: Coins, desc: language === 'zh' ? '查看佣金与算力奖励明细' : 'View commission and computing power details' },
     { id: 'payment_info', label: t.promotion_center.quick_links.payment_info, icon: Wallet, desc: language === 'zh' ? '设置或修改支付宝收款账号' : 'Set or modify Alipay account' },
   ];
 
@@ -200,6 +203,17 @@ export const PromotionCenter = ({ t, onBack, setToast, onChangeView }: Promotion
                     }`}>
                       <stat.icon size={20} />
                     </div>
+                    {stat.highlight && (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onChangeView?.('withdrawal_form');
+                        }}
+                        className="px-3 py-1 bg-white text-indigo-600 text-xs font-bold rounded-lg hover:bg-indigo-50 transition-colors shadow-sm"
+                      >
+                        {t.account.withdraw}
+                      </button>
+                    )}
                   </div>
                   <div>
                     <p className={`text-xs font-medium mb-1 ${

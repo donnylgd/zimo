@@ -1,20 +1,47 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# ZIMO 灵鸮 - 达人建联文案智能生成平台
 
-# Run and deploy your AI Studio app
+ZIMO 灵鸮是一款专为跨境电商卖家设计的 AI 赋能工具，旨在通过大模型技术，帮助卖家一键生成本土化、高转化率的达人建联邮件文案。
 
-This contains everything you need to run your app locally.
+## 核心功能
 
-View your app in AI Studio: https://ai.studio/apps/207171d7-4894-404a-92b2-758be626c795
+- **多模式导入**：支持单个达人快速录入及 CSV/XLSX 批量数据导入。
+- **智能策略配置**：
+  - **品牌策略**：支持“新品牌”与“大品牌”两种不同的邮件切入策略。
+  - **合作阶段**：覆盖“首次建联”、“合作详情”、“寄样反馈”全链路沟通场景。
+  - **深度思考**：解锁高阶正文生成能力，针对不同价值点（如货源、数据、佣金等）进行深度润色。
+- **AI 赋能**：
+  - **标题推荐**：基于阶段与策略，自动推荐高打开率的邮件标题。
+  - **卖点优化**：一键润色产品核心卖点，提升文案吸引力。
+- **异步任务管理**：支持大规模批量生成任务，后台异步处理，实时查看进度与结果。
+- **历史记录与导出**：全量保存历史生成记录，支持一键导出 Excel 结果。
 
-## Run Locally
+## 项目架构与目录结构
 
-**Prerequisites:**  Node.js
+```text
+/src
+  /components        # UI 组件库
+    Workspace.tsx    # 核心工作区：处理导入、配置与任务提交
+    History.tsx      # 历史任务列表：展示异步任务状态与进度
+    TaskDetail.tsx   # 任务详情：展示生成结果、筛选与导出
+  /services          # 接口服务层
+    api.ts           # Axios 封装与 AI/任务相关接口定义
+  /i18n.ts           # 国际化配置 (支持中英双语)
+  App.tsx            # 根组件：处理路由、用户状态与全局布局
+  main.tsx           # 入口文件
+  index.css          # 全局样式与 Tailwind 配置
+```
 
+## 核心业务流程
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+1. **达人导入**：用户选择单条或批量模式，上传达人基础信息（昵称、邮箱、粉丝量）。
+2. **策略配置**：选择合作阶段、品牌策略、生成语言及语气。
+3. **AI 辅助**：利用 AI 生成推荐标题，并优化产品卖点描述。
+4. **高阶配置**：(可选) 开启深度思考，选择并补充核心价值点关键词。
+5. **任务提交**：确认配置后提交生成任务，系统进入异步处理流程。
+6. **结果查看**：在“历史任务”中跟踪进度，完成后进入详情页查看并导出文案。
+
+## 开发说明
+
+- **技术栈**：React + TypeScript + Tailwind CSS + Lucide React + Framer Motion。
+- **状态管理**：使用 React Hooks (useState, useEffect, useMemo) 进行局部与全局状态管理。
+- **模拟数据**：当前版本部分接口采用前端模拟 (Mock) 逻辑，以展示完整的异步交互流程。

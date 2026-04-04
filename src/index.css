@@ -1,8 +1,19 @@
+/**
+ * 全局样式文件
+ * 
+ * 包含 Tailwind CSS 导入、自定义主题配置（如字体、动画）以及全局基础样式。
+ */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  --animate-shimmer: shimmer 2s infinite;
 }
 
 @variant dark (&:where(.dark, .dark *));

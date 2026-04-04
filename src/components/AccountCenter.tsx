@@ -16,7 +16,9 @@ import {
   Calendar,
   Wallet,
   X,
-  Loader2
+  Loader2,
+  Share2,
+  TrendingUp
 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { Translations } from '../i18n';
@@ -32,6 +34,7 @@ interface AccountCenterProps {
   onSetPassword: () => void;
   onChangePassword: () => void;
   onBindEmail: () => void;
+  onViewPromotion: () => void;
   setToast: (toast: { message: string, type: ToastType } | null) => void;
   t: Translations;
 }
@@ -50,6 +53,7 @@ export const AccountCenter = ({
   onSetPassword,
   onChangePassword,
   onBindEmail,
+  onViewPromotion,
   setToast,
   t 
 }: AccountCenterProps) => {
@@ -163,13 +167,15 @@ export const AccountCenter = ({
             <div className="flex items-center gap-3 mb-2">
               <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{user.name}</h3>
               <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                user.plan === 'pro' 
-                  ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400' 
-                  : user.plan === 'basic'
-                    ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'
-                    : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
+                user.plan === 'enterprise'
+                  ? 'bg-violet-100 text-violet-600 dark:bg-violet-500/20 dark:text-violet-400'
+                  : user.plan === 'pro' 
+                    ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400' 
+                    : user.plan === 'basic'
+                      ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'
+                      : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
               }`}>
-                {user.plan === 'free' ? t.user.plans.free : user.plan === 'basic' ? t.user.plans.basic : t.user.plans.pro}
+                {user.plan === 'free' ? t.user.plans.free : user.plan === 'basic' ? t.user.plans.basic : user.plan === 'pro' ? t.user.plans.pro : t.user.plans.enterprise}
               </span>
             </div>
             
@@ -248,9 +254,9 @@ export const AccountCenter = ({
                 </span>
               </div>
               <span className={`text-sm font-bold ${
-                user.plan === 'pro' ? 'text-indigo-500' : user.plan === 'basic' ? 'text-amber-500' : 'text-slate-800 dark:text-slate-200'
+                user.plan === 'enterprise' ? 'text-violet-600 dark:text-violet-400' : user.plan === 'pro' ? 'text-indigo-500' : user.plan === 'basic' ? 'text-amber-500' : 'text-slate-800 dark:text-slate-200'
               }`}>
-                {user.plan === 'free' ? t.user.plans.free : user.plan === 'basic' ? t.user.plans.basic : t.user.plans.pro}
+                {user.plan === 'free' ? t.user.plans.free : user.plan === 'basic' ? t.user.plans.basic : user.plan === 'pro' ? t.user.plans.pro : t.user.plans.enterprise}
               </span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-slate-50 dark:border-slate-700/30">
@@ -366,6 +372,40 @@ export const AccountCenter = ({
             <p className="text-xs text-indigo-600 dark:text-indigo-400 leading-relaxed">
               {t.account.email_recovery_desc}
             </p>
+          </div>
+        </motion.div>
+
+        {/* 4. 推广赚钱入口卡片 */}
+        <motion.div 
+          variants={itemVariants}
+          className="bg-indigo-600 rounded-3xl border border-indigo-500 p-6 shadow-lg shadow-indigo-500/20 flex flex-col relative overflow-hidden group cursor-pointer"
+          onClick={onViewPromotion}
+        >
+          <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform duration-500 pointer-events-none">
+            <Share2 size={120} />
+          </div>
+          
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                <TrendingUp size={18} className="text-white" />
+              </div>
+              <h4 className="font-bold text-white">{t.account.promotion_center}</h4>
+            </div>
+            
+            <p className="text-sm text-indigo-100 mb-6 leading-relaxed opacity-90">
+              {t.account.promotion_desc}
+            </p>
+
+            <div className="mt-auto flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-[10px] text-indigo-200 uppercase tracking-wider font-bold">{t.account.referral_balance}</span>
+                <span className="text-xl font-bold text-white">¥{(user.referralBalance || 0).toFixed(2)}</span>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-white text-indigo-600 flex items-center justify-center shadow-sm group-hover:translate-x-1 transition-transform">
+                <ChevronRight size={20} />
+              </div>
+            </div>
           </div>
         </motion.div>
       </div>

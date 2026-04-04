@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Clock, CheckCircle2, XCircle, Loader2, ChevronRight, Search, Filter } from 'lucide-react';
+import { FileText, Clock, CheckCircle2, XCircle, Loader2, ChevronRight, Search, Filter, RefreshCw } from 'lucide-react';
 import { TaskStatus } from '../types';
 import { Translations } from '../i18n';
 
@@ -10,6 +10,8 @@ export interface Task {
   status: TaskStatus;
   total: number;
   completed: number;
+  successCount?: number;
+  failedCount?: number;
   style?: string;
   stage?: string;
   subject?: string;
@@ -25,14 +27,25 @@ interface HistoryProps {
 }
 
 /**
- * 历史记录组件
- * 展示用户过往所有的文案生成任务列表，支持搜索和筛选
+ * 任务历史记录组件
+ * 
+ * @param tasks 任务列表数据
+ * @param onViewTask 查看任务详情回调
+ * @param t 国际化翻译对象
+ * 
+ * 功能：
+ * 1. 展示用户过往所有的文案生成任务列表。
+ * 2. 支持按任务 ID 或文件名进行关键词搜索。
+ * 3. 支持按业务阶段（初次邀约、细节沟通、单号同步）进行筛选。
+ * 4. 支持按任务状态（排队中、生成中、部分完成、已完成、生成失败）进行筛选。
+ * 5. 展示任务的进度、成功/失败数量、创建时间等核心信息。
  */
 export const History = ({ tasks, onViewTask, t }: HistoryProps) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [stageFilter, setStageFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState(''); // 搜索关键词
+  const [stageFilter, setStageFilter] = useState('all'); // 阶段筛选
+  const [statusFilter, setStatusFilter] = useState('all'); // 状态筛选
 
+  // 根据搜索词和筛选条件过滤任务列表
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           task.filename.toLowerCase().includes(searchTerm.toLowerCase());
@@ -101,9 +114,10 @@ export const History = ({ tasks, onViewTask, t }: HistoryProps) => {
               className="w-full md:w-auto bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 block px-3 py-2 outline-none transition-all appearance-none cursor-pointer"
             >
               <option value="all">{t.history.filter_status}</option>
-              <option value="pending">{t.history.status.pending}</option>
-              <option value="completed">{t.history.status.completed}</option>
+              <option value="queued">{t.history.status.queued}</option>
               <option value="processing">{t.history.status.processing}</option>
+              <option value="partial">{t.history.status.partial}</option>
+              <option value="completed">{t.history.status.completed}</option>
               <option value="failed">{t.history.status.failed}</option>
             </select>
           </div>
@@ -125,22 +139,22 @@ export const History = ({ tasks, onViewTask, t }: HistoryProps) => {
             filteredTasks.map((task) => (
               <div 
                 key={task.id}
-                onClick={() => task.status === 'completed' && onViewTask(task.id)}
-                className={`group p-6 flex items-center justify-between transition-all duration-300 ${
-                  task.status === 'completed' ? 'hover:bg-slate-50/80 dark:hover:bg-slate-800/40 cursor-pointer' : 'opacity-80'
-                }`}
+                onClick={() => onViewTask(task.id)}
+                className="group p-6 flex items-center justify-between transition-all duration-300 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 cursor-pointer"
               >
                 <div className="flex items-start gap-5 flex-1 min-w-0">
                   {/* Status Icon - Left */}
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105 ${
                     task.status === 'completed' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
                     task.status === 'processing' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' :
-                    task.status === 'pending' ? 'bg-slate-50 dark:bg-slate-500/10 text-slate-600 dark:text-slate-400' :
+                    task.status === 'queued' ? 'bg-slate-50 dark:bg-slate-500/10 text-slate-600 dark:text-slate-400' :
+                    task.status === 'partial' ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400' :
                     'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400'
                   }`}>
                     {task.status === 'completed' && <CheckCircle2 size={24} />}
                     {task.status === 'processing' && <Loader2 size={24} className="animate-spin" />}
-                    {task.status === 'pending' && <Clock size={24} />}
+                    {task.status === 'queued' && <Clock size={24} />}
+                    {task.status === 'partial' && <RefreshCw size={24} className="animate-spin" />}
                     {task.status === 'failed' && <XCircle size={24} />}
                   </div>
                   
@@ -159,10 +173,21 @@ export const History = ({ tasks, onViewTask, t }: HistoryProps) => {
                         <span className={`text-[10px] px-2.5 py-1 rounded-lg font-bold uppercase tracking-tight ${
                           task.status === 'completed' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' :
                           task.status === 'processing' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400' :
-                          task.status === 'pending' ? 'bg-slate-50 dark:bg-slate-500/10 text-slate-700 dark:text-slate-400' :
+                          task.status === 'queued' ? 'bg-slate-50 dark:bg-slate-500/10 text-slate-700 dark:text-slate-400' :
+                          task.status === 'partial' ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400' :
                           'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400'
-                        }`}>
-                          {task.status === 'completed' ? t.history.status.completed : task.status === 'processing' ? t.history.status.processing : task.status === 'pending' ? t.history.status.pending : t.history.status.failed}
+                        }`} title={
+                          task.status === 'queued' ? t.history.status.queued_desc :
+                          task.status === 'processing' ? t.history.status.processing_desc :
+                          task.status === 'partial' ? t.history.status.partial_desc :
+                          task.status === 'completed' ? t.history.status.completed_desc :
+                          t.history.status.failed_desc
+                        }>
+                          {task.status === 'completed' ? t.history.status.completed : 
+                           task.status === 'processing' ? t.history.status.processing : 
+                           task.status === 'queued' ? t.history.status.queued : 
+                           task.status === 'partial' ? t.history.status.partial : 
+                           t.history.status.failed}
                         </span>
                       </div>
                     </div>
@@ -183,8 +208,19 @@ export const History = ({ tasks, onViewTask, t }: HistoryProps) => {
                         </span>
                         <span className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-300">
                           <FileText size={14} className="text-slate-400" />
-                          {t.history.table.progress.replace('{completed}', task.completed.toString()).replace('{total}', task.total.toString())}
+                          {t.history.table.progress}: {task.completed} / {task.total}
                         </span>
+                        {(task.successCount !== undefined || task.failedCount !== undefined) && (
+                          <div className="flex items-center gap-3">
+                            <span className="text-slate-300 dark:text-slate-700 font-mono">|</span>
+                            <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                              {t.history.table.success}: {task.successCount || 0}
+                            </span>
+                            <span className="text-red-500 dark:text-red-400 font-bold">
+                              {t.history.table.failed}: {task.failedCount || 0}
+                            </span>
+                          </div>
+                        )}
                         <span className="text-slate-300 dark:text-slate-700 font-mono">|</span>
                         <span className="text-slate-400 dark:text-slate-500 font-mono text-[10px] uppercase">ID: {task.id.toUpperCase()}</span>
                       </div>
@@ -210,17 +246,10 @@ export const History = ({ tasks, onViewTask, t }: HistoryProps) => {
 
                 {/* Right Action - Explicit Entry */}
                 <div className="flex items-center gap-3 ml-6">
-                  {task.status === 'completed' && (
-                    <div className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400 font-bold text-xs uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                      {t.history.table.view}
-                      <ChevronRight size={18} />
-                    </div>
-                  )}
-                  {task.status !== 'completed' && (
-                    <div className="text-slate-300 dark:text-slate-700">
-                      <ChevronRight size={20} />
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400 font-bold text-xs uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                    {t.history.table.view}
+                    <ChevronRight size={18} />
+                  </div>
                 </div>
               </div>
             ))

@@ -9,7 +9,7 @@ interface RewardHistoryProps {
 
 /**
  * 奖励明细组件
- * 展示用户的额度奖励和佣金奖励记录
+ * 展示用户的算力奖励和佣金奖励记录
  */
 export const RewardHistory = ({ t, onBack }: RewardHistoryProps) => {
   const [activeTab, setActiveTab] = useState<'quota' | 'commission'>('quota');

@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { UploadCloud, FileText, Settings, Play, AlertCircle, CheckCircle2, Loader2, Send, Sparkles, RefreshCw, Info, Search, User } from 'lucide-react';
+import { UploadCloud, FileText, Settings, Play, AlertCircle, CheckCircle2, Loader2, Send, Sparkles, RefreshCw, Info, Search, User, Eye } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { UserProfile, UploadState } from '../types';
-import { ToastType } from './Shared';
+import { UserProfile, UploadState, ViewState } from '../types';
+import { Modal, ToastType } from './Shared';
 import { Translations } from '../i18n';
 import { aiService } from '../services/api';
 
@@ -11,67 +11,123 @@ type Stage = 'initial' | 'details' | 'tracking';
 interface WorkspaceProps {
   user: UserProfile | null;
   onLoginClick: () => void;
-  onStartGenerate: (file: File, config: any) => void;
+  onStartGenerate: (file: File, config: any) => Promise<string | null>;
   setToast: (toast: { message: string, type: ToastType } | null) => void;
+  onChangeView: (view: ViewState) => void;
+  currentView: ViewState;
   t: Translations;
 }
 
 /**
  * 工作台组件
- * 核心业务流程：达人数据导入 -> 邮件策略配置 -> 预览与开始生成
+ * 
+ * @param user 当前登录用户信息
+ * @param onLoginClick 点击登录回调
+ * @param onStartGenerate 开始生成任务回调
+ * @param setToast 设置全局提示回调
+ * @param onChangeView 切换视图回调
+ * @param currentView 当前视图状态
+ * @param t 国际化翻译对象
+ * 
+ * 核心业务流程：
+ * 1. 达人数据导入（单条/批量）
+ * 2. 邮件策略配置（AI 生成标题、卖点优化、深度思考策略）
+ * 3. 预览与异步任务提交
  */
-export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: WorkspaceProps) => {
+export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, onChangeView, currentView, t }: WorkspaceProps) => {
 
+  // 业务阶段定义：初次邀约、细节沟通、单号同步
   const STAGES = [
     { id: 'initial', label: t.workspace.stage_initial, desc: t.workspace.stage_initial_desc },
     { id: 'details', label: t.workspace.stage_details, desc: t.workspace.stage_details_desc },
     { id: 'tracking', label: t.workspace.stage_tracking, desc: t.workspace.stage_tracking_desc }
   ];
-  const [importMode, setImportMode] = useState<'single' | 'batch'>('batch');
-  const [currentStep, setCurrentStep] = useState(1);
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const [showValidation, setShowValidation] = useState(false);
+
+  // 状态管理
+  const [importMode, setImportMode] = useState<'single' | 'batch'>('batch'); // 导入模式
+  const [currentStep, setCurrentStep] = useState(1); // 当前步骤 (1-3)
+  const [validationError, setValidationError] = useState<string | null>(null); // 表单校验错误信息
+  const [showValidation, setShowValidation] = useState(false); // 是否展示校验提醒
+  
+  // 单个达人信息状态
   const [singleCreator, setSingleCreator] = useState({
     name: '',
     email: '',
     followers: '',
     profileUrl: ''
   });
-  const [file, setFile] = useState<File | null>(null);
-  const [uploadState, setUploadState] = useState<UploadState>('idle');
-  const [uploadStats, setUploadStats] = useState({
+
+  const [file, setFile] = useState<File | null>(null); // 批量导入的文件对象
+  const [uploadState, setUploadState] = useState<UploadState>('idle'); // 文件上传/解析状态
+  const [uploadStats, setUploadStats] = useState({ // 文件解析统计
     total: 0,
     success: 0,
     failed: 0
   });
+
+  // 核心生成配置状态
   const [config, setConfig] = useState({ 
-    stage: 'initial' as Stage,
-    brandSize: 'small' as 'small' | 'large',
-    brandName: '',
-    subject: '',
-    enableFirstSentenceStrategy: false,
-    firstSentenceValues: [] as string[],
-    valuePointsKeywords: {} as Record<string, string>,
-    productName: '', 
-    sellingPoints: '', 
-    commissionRate: '10',
-    freeSampleThreshold: '10000',
-    collabNotes: '',
-    packageContent: '',
-    trackingNumber: '',
-    carrier: '',
-    additionalNotes: '',
-    tone: 'professional' 
+    stage: 'initial' as Stage, // 业务阶段
+    brandSize: 'small' as 'small' | 'large', // 品牌规模
+    brandName: '', // 品牌名称
+    subject: '', // 邮件标题
+    enableFirstSentenceStrategy: false, // 是否开启深度思考（第一句话策略）
+    firstSentenceValues: [] as string[], // 选中的价值点
+    valuePointsKeywords: {} as Record<string, string>, // 价值点对应的关键词
+    productName: '', // 产品名称
+    sellingPoints: '', // 产品卖点
+    commissionRate: '10', // 佣金比例
+    freeSampleThreshold: '10000', // 免费样品门槛
+    collabNotes: '', // 合作备注
+    packageContent: '', // 包裹内容
+    trackingNumber: '', // 物流单号
+    carrier: '', // 承运商
+    additionalNotes: '', // 额外说明
+    tone: 'professional', // 邮件语气
+    genLanguage: 'en' as 'en' | 'es' | 'pt' // 生成语言
   });
+
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isGeneratingSubject, setIsGeneratingSubject] = useState(false);
-  const [isOptimizingSellingPoints, setIsOptimizingSellingPoints] = useState(false);
-  const [subjectGenerated, setSubjectGenerated] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingSubject, setIsGeneratingSubject] = useState(false); // 正在生成标题状态
+  const [isOptimizingSellingPoints, setIsOptimizingSellingPoints] = useState(false); // 正在优化卖点状态
+  const [subjectGenerated, setSubjectGenerated] = useState(false); // 标题是否已生成
+  const [isGenerating, setIsGenerating] = useState(false); // 正在提交任务状态
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false); // 升级弹窗状态
+  const [isTaskSubmittedModalOpen, setIsTaskSubmittedModalOpen] = useState(false); // 任务提交成功弹窗状态
+  const [pendingDeepThinkingExpand, setPendingDeepThinkingExpand] = useState(false); // 升级后待展开深度思考状态
+
+  // 权限判断：只有 Pro 或 Enterprise 计划可以使用深度思考
+  const hasDeepThinkingAccess = user?.plan === 'pro' || user?.plan === 'enterprise';
+  const prevPlanRef = useRef(user?.plan);
+  const prevViewRef = useRef(currentView);
+
+  useEffect(() => {
+    // 权限降级处理：如果用户计划变更导致失去深度思考权限，则自动关闭该功能
+    if (!hasDeepThinkingAccess && config.enableFirstSentenceStrategy) {
+      setConfig(prev => ({ ...prev, enableFirstSentenceStrategy: false }));
+      setToast({ message: t.workspace.plan_downgrade_hint, type: 'warning' });
+    }
+
+    // 升级成功后的交互逻辑：自动展开之前受限的功能
+    const wasRestricted = prevPlanRef.current === 'free' || prevPlanRef.current === 'basic';
+    const isNowPro = user?.plan === 'pro' || user?.plan === 'enterprise';
+    
+    if (wasRestricted && isNowPro && currentView === 'workspace' && prevViewRef.current === 'my_plan') {
+      setToast({ message: t.workspace.deep_thinking_unlocked_toast, type: 'success' });
+      if (pendingDeepThinkingExpand) {
+        setConfig(prev => ({ ...prev, enableFirstSentenceStrategy: true }));
+        setPendingDeepThinkingExpand(false);
+      }
+    }
+
+    prevPlanRef.current = user?.plan;
+    prevViewRef.current = currentView;
+  }, [user?.plan, currentView]);
 
   const prevStageRef = useRef(config.stage);
   const prevBrandSizeRef = useRef(config.brandSize);
 
+  // 监听阶段或品牌规模变化，重置已生成的标题
   useEffect(() => {
     if (prevStageRef.current !== config.stage || prevBrandSizeRef.current !== config.brandSize) {
       setSubjectGenerated(false);
@@ -81,6 +137,7 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
     }
   }, [config.stage, config.brandSize]);
 
+  // 切换步骤时重置校验状态
   useEffect(() => {
     setShowValidation(false);
     setValidationError(null);
@@ -88,6 +145,9 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
 
   /**
    * 处理 AI 生成邮件标题
+   * 
+   * 调用 aiService.generateSubject 接口，根据当前阶段、品牌规模等生成标题。
+   * 包含 API 调用失败后的本地兜底逻辑。
    */
   const handleGenerateSubject = async () => {
     if (!config.stage || !config.brandSize) {
@@ -102,7 +162,8 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
         stage: config.stage,
         brandSize: config.brandSize,
         brandName: config.brandName,
-        productName: config.productName
+        productName: config.productName,
+        genLanguage: config.genLanguage
       });
       
       if (response.code === 200) {
@@ -116,18 +177,50 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
       console.error('Generate subject failed, using fallback:', error);
       // 兜底逻辑
       let fallbackSubject = '';
+      const lang = config.genLanguage;
+      
       if (config.stage === 'initial') {
-        fallbackSubject = config.brandSize === 'large' 
-          ? `【${config.brandName || 'Brand'}】x TikTok Creator Collaboration Invitation` 
-          : `Paid Collaboration: Innovative ${config.productName || 'Product'} for Your Audience`;
+        if (lang === 'es') {
+          fallbackSubject = config.brandSize === 'large' 
+            ? `【${config.brandName || 'Marca'}】x Invitación de colaboración para creadores de TikTok` 
+            : `Colaboración pagada: ${config.productName || 'Producto'} innovador para su audiencia`;
+        } else if (lang === 'pt') {
+          fallbackSubject = config.brandSize === 'large' 
+            ? `【${config.brandName || 'Marca'}】x Convite de colaboração para criadores do TikTok` 
+            : `Colaboração paga: ${config.productName || 'Produto'} inovador para seu público`;
+        } else {
+          fallbackSubject = config.brandSize === 'large' 
+            ? `【${config.brandName || 'Brand'}】x TikTok Creator Collaboration Invitation` 
+            : `Paid Collaboration: Innovative ${config.productName || 'Product'} for Your Audience`;
+        }
       } else if (config.stage === 'details') {
-        fallbackSubject = config.brandSize === 'large'
-          ? `【${config.brandName || 'Brand'}】Collaboration Details & Next Steps`
-          : 'Collaboration Details: Free Sample & Commission Info';
+        if (lang === 'es') {
+          fallbackSubject = config.brandSize === 'large'
+            ? `【${config.brandName || 'Marca'}】Detalles de la colaboración y próximos pasos`
+            : 'Detalles de la colaboración: Muestra gratuita e información sobre comisiones';
+        } else if (lang === 'pt') {
+          fallbackSubject = config.brandSize === 'large'
+            ? `【${config.brandName || 'Marca'}】Detalhes da colaboração e próximos passos`
+            : 'Detalhes da colaboração: Amostra grátis e informações sobre comissões';
+        } else {
+          fallbackSubject = config.brandSize === 'large'
+            ? `【${config.brandName || 'Brand'}】Collaboration Details & Next Steps`
+            : 'Collaboration Details: Free Sample & Commission Info';
+        }
       } else if (config.stage === 'tracking') {
-        fallbackSubject = config.brandSize === 'large'
-          ? `【${config.brandName || 'Brand'}】Sample Shipped - Tracking Info Inside`
-          : 'Your Sample is on the Way! Tracking Info Inside';
+        if (lang === 'es') {
+          fallbackSubject = config.brandSize === 'large'
+            ? `【${config.brandName || 'Marca'}】Muestra enviada - Información de seguimiento en el interior`
+            : '¡Su muestra está en camino! Información de seguimiento en el interior';
+        } else if (lang === 'pt') {
+          fallbackSubject = config.brandSize === 'large'
+            ? `【${config.brandName || 'Marca'}】Amostra enviada - Informações de rastreamento dentro`
+            : 'Sua amostra está a caminho! Informações de rastreamento dentro';
+        } else {
+          fallbackSubject = config.brandSize === 'large'
+            ? `【${config.brandName || 'Brand'}】Sample Shipped - Tracking Info Inside`
+            : 'Your Sample is on the Way! Tracking Info Inside';
+        }
       }
       setConfig(prev => ({ ...prev, subject: fallbackSubject }));
       setSubjectGenerated(true);
@@ -139,6 +232,9 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
 
   /**
    * 处理 AI 优化产品卖点
+   * 
+   * 调用 aiService.optimizeSellingPoints 接口，对用户输入的产品卖点进行润色。
+   * 包含 API 调用失败后的本地兜底逻辑。
    */
   const handleOptimizeSellingPoints = async () => {
     if (!config.sellingPoints) {
@@ -154,7 +250,8 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
       const response = await aiService.optimizeSellingPoints({
         stage: config.stage,
         sellingPoints: config.sellingPoints,
-        productName: config.productName
+        productName: config.productName,
+        genLanguage: config.genLanguage
       });
       
       if (response.code === 200) {
@@ -167,12 +264,32 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
       console.error('Optimize selling points failed, using fallback:', error);
       // 兜底逻辑
       let optimized = config.sellingPoints;
+      const lang = config.genLanguage;
+      
       if (config.stage === 'initial') {
-        optimized = `[AI Optimized] ${config.sellingPoints} (Focus: Concise & Hooking)`;
+        if (lang === 'es') {
+          optimized = `[Optimizado por AI] ${config.sellingPoints} (Enfoque: Conciso y Atractivo)`;
+        } else if (lang === 'pt') {
+          optimized = `[Otimizado por AI] ${config.sellingPoints} (Foco: Conciso e Atraente)`;
+        } else {
+          optimized = `[AI Optimized] ${config.sellingPoints} (Focus: Concise & Hooking)`;
+        }
       } else if (config.stage === 'details') {
-        optimized = `[AI Optimized] ${config.sellingPoints} (Focus: Complete & Value-driven)`;
+        if (lang === 'es') {
+          optimized = `[Optimizado por AI] ${config.sellingPoints} (Enfoque: Completo y Orientado al Valor)`;
+        } else if (lang === 'pt') {
+          optimized = `[Otimizado por AI] ${config.sellingPoints} (Foco: Completo e Orientado ao Valor)`;
+        } else {
+          optimized = `[AI Optimized] ${config.sellingPoints} (Focus: Complete & Value-driven)`;
+        }
       } else if (config.stage === 'tracking') {
-        optimized = `[AI Optimized] ${config.sellingPoints} (Focus: Light & Notification-style)`;
+        if (lang === 'es') {
+          optimized = `[Optimizado por AI] ${config.sellingPoints} (Enfoque: Ligero y Estilo Notificación)`;
+        } else if (lang === 'pt') {
+          optimized = `[Otimizado por AI] ${config.sellingPoints} (Foco: Leve e Estilo Notificação)`;
+        } else {
+          optimized = `[AI Optimized] ${config.sellingPoints} (Focus: Light & Notification-style)`;
+        }
       }
       setConfig(prev => ({ ...prev, sellingPoints: optimized }));
       setToast({ message: t.common.dev_mode_notice + ': ' + t.common.success, type: 'warning' });
@@ -307,6 +424,10 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
 
   /**
    * 处理文件上传与解析
+   * 
+   * 使用 XLSX 库解析上传的 Excel/CSV 文件，校验表头是否包含必填项（达人姓名、粉丝数、邮箱）。
+   * 支持模拟部分成功、配额不足等业务场景。
+   * 
    * @param e 文件输入事件
    */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -390,8 +511,11 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
 
   /**
    * 处理开始生成任务
+   * 
+   * 提交生成配置到后端（模拟），成功后展示任务提交成功弹窗。
+   * 包含登录校验、配额校验及单条/批量模式处理。
    */
-  const handleStart = () => {
+  const handleStart = async () => {
     if (!user) {
       onLoginClick();
       return;
@@ -404,8 +528,13 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
     }
     
     setIsGenerating(true);
+    setToast({ message: t.workspace.submitting, type: 'info' });
     
-    setTimeout(() => {
+    try {
+      // 模拟网络延迟
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      let resultTaskId = null;
       if (importMode === 'batch') {
         if (!file) {
           setIsGenerating(false);
@@ -417,7 +546,7 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
           setIsGenerating(false);
           return;
         }
-        onStartGenerate(file, config);
+        resultTaskId = await onStartGenerate(file, config);
       } else {
         if (!singleCreator.name || !singleCreator.email || !singleCreator.followers) {
           setIsGenerating(false);
@@ -425,16 +554,22 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
         }
         // Check quota
         if (user.quota !== 'unlimited' && user.quota <= 0) {
-          // Handle single mode quota error
           setIsGenerating(false);
           return;
         }
-        // Mock a file for single mode to keep existing interface happy for now
         const mockFile = new File([''], 'single_creator.csv', { type: 'text/csv' });
-        onStartGenerate(mockFile, { ...config, singleCreator });
+        resultTaskId = await onStartGenerate(mockFile, { ...config, singleCreator });
       }
+
+      if (resultTaskId) {
+        setIsTaskSubmittedModalOpen(true);
+        setToast({ message: `${t.workspace.task_submitted_title}，正在后台生成`, type: 'success' });
+      }
+    } catch (error) {
+      console.error('Task submission failed:', error);
+    } finally {
       setIsGenerating(false);
-    }, 600);
+    }
   };
 
   const areKeywordsValid = config.enableFirstSentenceStrategy 
@@ -461,6 +596,87 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto pb-20">
+      {/* 升级引导弹窗 */}
+      <Modal 
+        isOpen={isUpgradeModalOpen} 
+        onClose={() => setIsUpgradeModalOpen(false)} 
+        title={t.workspace.deep_thinking_lock_title} 
+        width="max-w-sm"
+      >
+        <div className="py-4">
+          <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-500/10 rounded-full flex items-center justify-center mb-6 mx-auto">
+            <Sparkles size={32} className="text-indigo-600 dark:text-indigo-400" />
+          </div>
+          <p className="text-sm text-slate-600 dark:text-slate-400 text-center mb-8 leading-relaxed">
+            {t.workspace.deep_thinking_lock_desc}
+          </p>
+          <div className="flex gap-3">
+            <button 
+              onClick={() => setIsUpgradeModalOpen(false)}
+              className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              {t.workspace.not_now}
+            </button>
+            <button 
+              onClick={() => {
+                setIsUpgradeModalOpen(false);
+                setPendingDeepThinkingExpand(true);
+                onChangeView('my_plan');
+                // 模拟滚动到专业版
+                setTimeout(() => {
+                  const proCard = document.querySelector('[data-plan-id="pro"]');
+                  if (proCard) {
+                    proCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    proCard.classList.add('ring-4', 'ring-indigo-500/50', 'scale-105');
+                    setTimeout(() => {
+                      proCard.classList.remove('ring-4', 'ring-indigo-500/50', 'scale-105');
+                    }, 2000);
+                  }
+                }, 100);
+              }}
+              className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition-colors shadow-lg shadow-indigo-500/20"
+            >
+              {t.workspace.view_plans}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 任务已提交弹窗 */}
+      <Modal 
+        isOpen={isTaskSubmittedModalOpen} 
+        onClose={() => setIsTaskSubmittedModalOpen(false)} 
+        title={t.workspace.task_submitted_title} 
+        width="max-w-sm"
+      >
+        <div className="py-4">
+          <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-500/10 rounded-full flex items-center justify-center mb-6 mx-auto">
+            <CheckCircle2 size={32} className="text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <p className="text-sm text-slate-600 dark:text-slate-400 text-center mb-8 leading-relaxed">
+            {t.workspace.task_submitted_desc.replace('{time}', '2-5')}
+          </p>
+          <div className="flex flex-col gap-3">
+            <button 
+              onClick={() => {
+                setIsTaskSubmittedModalOpen(false);
+                onChangeView('history');
+              }}
+              className="w-full px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2"
+            >
+              <Eye size={16} />
+              {t.workspace.view_history}
+            </button>
+            <button 
+              onClick={() => setIsTaskSubmittedModalOpen(false)}
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              {t.workspace.stay_here}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
       {/* Header */}
       <div className="text-center mb-10">
         <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">{t.workspace.title}</h2>
@@ -498,6 +714,50 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
         {currentStep === 1 && (
           <div className="space-y-8 animate-in fade-in duration-500">
             <ValidationAlert step={1} />
+            
+            {/* Generation Language Selection */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col transition-colors duration-200">
+              <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                  <Sparkles size={18} />
+                </div>
+                <h3 className="font-semibold text-slate-800 dark:text-slate-100">{t.workspace.gen_language}</h3>
+              </div>
+              <div className="p-6">
+                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-4 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <Info size={16} className="text-indigo-400 shrink-0" />
+                  {t.workspace.gen_language_hint}
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  {[
+                    { id: 'en', label: t.workspace.lang_en, flag: '🇺🇸' },
+                    { id: 'es', label: t.workspace.lang_es, flag: '🇪🇸' },
+                    { id: 'pt', label: t.workspace.lang_pt, flag: '🇧🇷' }
+                  ].map(lang => (
+                    <button
+                      key={lang.id}
+                      onClick={() => setConfig({ ...config, genLanguage: lang.id as any })}
+                      className={`relative flex flex-col items-center justify-center py-6 px-4 rounded-2xl border-2 transition-all group ${
+                        config.genLanguage === lang.id
+                          ? 'border-indigo-500 bg-indigo-50/30 dark:bg-indigo-500/10 ring-1 ring-indigo-500 shadow-lg shadow-indigo-500/10'
+                          : 'border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/30 hover:border-slate-200 dark:hover:border-slate-700'
+                      }`}
+                    >
+                      <span className="text-3xl mb-3 group-hover:scale-110 transition-transform">{lang.flag}</span>
+                      <span className={`text-sm font-bold ${config.genLanguage === lang.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400'}`}>
+                        {lang.label}
+                      </span>
+                      {config.genLanguage === lang.id && (
+                        <div className="absolute top-3 right-3 w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center shadow-lg animate-in zoom-in duration-300">
+                          <CheckCircle2 size={14} className="text-white" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col transition-colors duration-200">
             <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -795,6 +1055,7 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
                   <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                     <span className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-indigo-400" /> {importMode === 'single' ? t.workspace.single : t.workspace.batch}</span>
                     <span className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-indigo-400" /> {STAGES.find(s => s.id === config.stage)?.label}</span>
+                    <span className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-indigo-400" /> {t.workspace[`lang_${config.genLanguage as 'en' | 'es' | 'pt'}`]}</span>
                   </div>
                 </div>
               </div>
@@ -1047,9 +1308,16 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
 
             {/* Subject Strategy */}
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-100">{t.workspace.ai_subject}</h4>
-                <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/30">{t.workspace.ai_powered}</span>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-100">{t.workspace.ai_subject}</h4>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/30">{t.workspace.ai_powered}</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                    {t.workspace.current_gen_language.replace('{lang}', t.workspace[`lang_${config.genLanguage as 'en' | 'es' | 'pt'}`])}
+                  </span>
+                </div>
               </div>
               
               <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-4">
@@ -1093,29 +1361,53 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
 
             {/* Body Strategy */}
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-100">{t.workspace.body_strategy}</h4>
-                <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-500/30">{t.workspace.advanced_gen}</span>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-100">{t.workspace.body_strategy}</h4>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-500/30">{t.workspace.advanced_gen}</span>
+                    {!hasDeepThinkingAccess && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/30">
+                        {t.workspace.deep_thinking_pro_tag}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                    {t.workspace.current_gen_language.replace('{lang}', t.workspace[`lang_${config.genLanguage as 'en' | 'es' | 'pt'}`])}
+                  </span>
+                </div>
               </div>
 
               <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                    {!config.enableFirstSentenceStrategy 
-                      ? t.workspace.body_strategy_default
-                      : (config.stage === 'initial' 
-                          ? t.workspace.body_strategy_enabled_initial 
-                          : (config.stage === 'details' 
-                              ? t.workspace.body_strategy_enabled_details 
-                              : t.workspace.body_strategy_enabled_tracking))
+                    {!hasDeepThinkingAccess 
+                      ? t.workspace.deep_thinking_permission_hint
+                      : (!config.enableFirstSentenceStrategy 
+                          ? t.workspace.body_strategy_default
+                          : (config.stage === 'initial' 
+                              ? t.workspace.body_strategy_enabled_initial 
+                              : (config.stage === 'details' 
+                                  ? t.workspace.body_strategy_enabled_details 
+                                  : t.workspace.body_strategy_enabled_tracking)))
                     }
                   </div>
                   <button 
-                    onClick={() => setConfig({...config, enableFirstSentenceStrategy: !config.enableFirstSentenceStrategy})}
+                    onClick={() => {
+                      if (!hasDeepThinkingAccess) {
+                        setIsUpgradeModalOpen(true);
+                        return;
+                      }
+                      setConfig({...config, enableFirstSentenceStrategy: !config.enableFirstSentenceStrategy});
+                    }}
                     className={`px-5 py-2.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all shrink-0 ${
-                      config.enableFirstSentenceStrategy
-                        ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 shadow-sm'
-                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm'
+                      !hasDeepThinkingAccess
+                        ? 'bg-slate-100 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 cursor-not-allowed'
+                        : config.enableFirstSentenceStrategy
+                          ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 shadow-sm'
+                          : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm'
                     }`}
                   >
                     <Sparkles size={16} className={config.enableFirstSentenceStrategy ? "text-indigo-500" : "text-slate-400"} />
@@ -1254,6 +1546,7 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
                     <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                       <span className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-indigo-400" /> {importMode === 'single' ? t.workspace.single : t.workspace.batch}</span>
                       <span className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-indigo-400" /> {STAGES.find(s => s.id === config.stage)?.label}</span>
+                      <span className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-indigo-400" /> {t.workspace[`lang_${config.genLanguage as 'en' | 'es' | 'pt'}`]}</span>
                     </div>
                   </div>
                 </div>
@@ -1309,6 +1602,10 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-slate-500 dark:text-slate-400">{t.workspace.confirm_creator_count}</span>
                         <span className="font-medium text-slate-900 dark:text-slate-100">{importMode === 'single' ? '1' : (uploadStats.success || '0')} 位</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-slate-500 dark:text-slate-400">{t.workspace.gen_language}</span>
+                        <span className="font-medium text-slate-900 dark:text-slate-100">{t.workspace[`lang_${config.genLanguage as 'en' | 'es' | 'pt'}`]}</span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-slate-500 dark:text-slate-400">{t.workspace.current_stage}</span>
@@ -1410,7 +1707,7 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, t }: 
                 className="bg-emerald-600 hover:bg-emerald-700 text-white px-10 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-70 flex items-center gap-2 hover:scale-105 active:scale-95"
               >
                 {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={18} />}
-                {isGenerating ? t.workspace.generating : t.workspace.generate_btn}
+                {isGenerating ? t.workspace.submitting : t.workspace.generate_btn}
               </button>
             </div>
           )}
