@@ -34,7 +34,6 @@ export const Layout = ({
 
   const navItems = [
     { id: 'workspace', label: t.nav.workspace },
-    { id: 'mass_send', label: t.nav.mass_send },
     { id: 'design_system', label: t.nav.design_system },
   ].filter(item => item.id !== 'design_system');
 
@@ -83,7 +82,7 @@ export const Layout = ({
             >
               <CreditCard size={14} className="group-hover:scale-110 transition-transform" />
               <span className="text-[11px] font-bold whitespace-nowrap">
-                {user.plan === 'free' ? t.user.plans.free : user.plan === 'basic' ? t.user.plans.basic : t.user.plans.pro}
+                {user.plan === 'free' ? t.user.plans.free : user.plan === 'basic' ? t.user.plans.basic : user.plan === 'pro' ? t.user.plans.pro : t.user.plans.enterprise}
               </span>
             </button>
           )}
@@ -129,7 +128,7 @@ export const Layout = ({
                 <div className="flex flex-col items-start text-left hidden sm:flex">
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-200 leading-none">{user.name}</span>
                   <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider font-semibold">
-                    {user.plan === 'free' ? t.user.plans.free : user.plan === 'basic' ? t.user.plans.basic : t.user.plans.pro}
+                    {user.plan === 'free' ? t.user.plans.free : user.plan === 'basic' ? t.user.plans.basic : user.plan === 'pro' ? t.user.plans.pro : t.user.plans.enterprise}
                   </span>
                 </div>
                 <ChevronDown size={14} className="text-slate-400 ml-1" />
@@ -143,7 +142,7 @@ export const Layout = ({
                     <div className="px-4 py-3 border-b border-slate-50 dark:border-slate-700/50 mb-1">
                       <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t.user.quota}</p>
                       <p className="text-lg font-bold text-slate-800 dark:text-slate-100">
-                        {user.quota === 'unlimited' ? t.user.unlimited : user.quota} <span className="text-xs font-normal text-slate-500 dark:text-slate-400">{t.user.unit}</span>
+                        {user.quota.toLocaleString()} <span className="text-xs font-normal text-slate-500 dark:text-slate-400">{t.user.unit}</span>
                       </p>
                     </div>
                     

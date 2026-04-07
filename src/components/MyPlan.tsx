@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { CreditCard, Gift, CheckCircle2, Zap, ShieldCheck, ArrowRight, Loader2, Plus, X, Info } from 'lucide-react';
+import { CreditCard, Gift, CheckCircle2, Zap, ShieldCheck, ArrowRight, Loader2, Plus, X, Info, Download, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UserProfile } from '../types';
-import { ToastType } from './Shared';
+import { ToastType, Modal } from './Shared';
 import { Translations } from '../i18n';
 
 interface MyPlanProps {
@@ -22,6 +22,10 @@ export const MyPlan = ({ user, onBuyPlan, onRedeemCode, onViewTransactions, setT
   const [promoCode, setPromoCode] = useState('');
   const [isRedeeming, setIsRedeeming] = useState(false);
   const [showAddonModal, setShowAddonModal] = useState(false);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [selectedOS, setSelectedOS] = useState<'windows' | 'macos' | null>(null);
+  const [selectedChip, setSelectedChip] = useState<'intel' | 'apple' | null>(null);
+  const [showChipHelp, setShowChipHelp] = useState(false);
 
   /**
    * 处理兑换码逻辑
@@ -85,20 +89,30 @@ export const MyPlan = ({ user, onBuyPlan, onRedeemCode, onViewTransactions, setT
       { key: '服务：', enKey: 'Service: ', color: 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' }
     ];
 
+    let label = '';
+    let content = text;
+    let tagColor = '';
+
     for (const tag of tags) {
       if (text.startsWith(tag.key) || text.startsWith(tag.enKey)) {
-        const label = text.startsWith(tag.key) ? tag.key.replace('：', '') : tag.enKey.replace(': ', '');
-        const content = text.startsWith(tag.key) ? text.replace(tag.key, '') : text.replace(tag.enKey, '');
-        return (
-          <div className="flex items-center gap-2">
-            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${tag.color} shrink-0`}>
-              {label}
-            </span>
-            <span>{content}</span>
-          </div>
-        );
+        label = text.startsWith(tag.key) ? tag.key.replace('：', '') : tag.enKey.replace(': ', '');
+        content = text.startsWith(tag.key) ? text.replace(tag.key, '') : text.replace(tag.enKey, '');
+        tagColor = tag.color;
+        break;
       }
     }
+
+    if (label) {
+      return (
+        <div className="flex items-center gap-2">
+          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${tagColor} shrink-0`}>
+            {label}
+          </span>
+          <span>{content}</span>
+        </div>
+      );
+    }
+
     return <span>{text}</span>;
   };
 
@@ -150,36 +164,30 @@ export const MyPlan = ({ user, onBuyPlan, onRedeemCode, onViewTransactions, setT
                   </p>
                   <div className="flex items-baseline gap-2">
                     <span className="text-5xl font-black text-white tabular-nums tracking-tighter">
-                      {user.quota === 'unlimited' ? t.my_plan.unlimited : user.quota}
+                      {user.quota}
                     </span>
-                    {user.quota !== 'unlimited' && (
-                      <span className="text-lg text-slate-500 font-bold">
-                        / {isBasic ? '800' : isPro ? '3000' : isEnterprise ? '10000' : '500'} {t.my_plan.unit}
-                      </span>
-                    )}
+                    <span className="text-lg text-slate-500 font-bold">
+                      / {isBasic ? '800' : isPro ? '3000' : isEnterprise ? '10000' : '500'} {t.my_plan.unit}
+                    </span>
                   </div>
                 </div>
                 
-                {user.quota !== 'unlimited' && (
-                  <div className="text-right">
-                    <span className="text-2xl font-black text-indigo-400 tabular-nums">
-                      {Math.round((Number(user.quota) || 0) / (isBasic ? 800 : isPro ? 3000 : isEnterprise ? 10000 : 500) * 100)}%
-                    </span>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Remaining</p>
-                  </div>
-                )}
+                <div className="text-right">
+                  <span className="text-2xl font-black text-indigo-400 tabular-nums">
+                    {Math.round((Number(user.quota) || 0) / (isBasic ? 800 : isPro ? 3000 : isEnterprise ? 10000 : 500) * 100)}%
+                  </span>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Remaining</p>
+                </div>
               </div>
               
-              {user.quota !== 'unlimited' && (
-                <div className="space-y-2">
-                  <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden p-0.5 border border-white/5">
-                    <div 
-                      className="h-full bg-gradient-to-r from-indigo-600 to-violet-500 rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(79,70,229,0.4)]"
-                      style={{ width: `${Math.min(100, (Number(user.quota) || 0) / (isBasic ? 800 : isPro ? 3000 : isEnterprise ? 10000 : 500) * 100)}%` }}
-                    />
-                  </div>
+              <div className="space-y-2">
+                <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden p-0.5 border border-white/5">
+                  <div 
+                    className="h-full bg-gradient-to-r from-indigo-600 to-violet-500 rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(79,70,229,0.4)]"
+                    style={{ width: `${Math.min(100, (Number(user.quota) || 0) / (isBasic ? 800 : isPro ? 3000 : isEnterprise ? 10000 : 500) * 100)}%` }}
+                  />
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
@@ -191,6 +199,8 @@ export const MyPlan = ({ user, onBuyPlan, onRedeemCode, onViewTransactions, setT
           const isActive = user.plan === plan.id;
           const isDowngrade = (user.plan === 'pro' && plan.id === 'basic') || 
                               (user.plan === 'enterprise' && (plan.id === 'basic' || plan.id === 'pro'));
+          
+          const showDownloadEntry = plan.id === 'pro' || plan.id === 'enterprise';
 
           return (
             <div 
@@ -202,7 +212,7 @@ export const MyPlan = ({ user, onBuyPlan, onRedeemCode, onViewTransactions, setT
                   : 'border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-200 dark:hover:border-indigo-800'
               } ${plan.recommended ? 'md:scale-105 md:-translate-y-2' : ''}`}
             >
-              {plan.recommended && (
+              {plan.recommended && !isActive && (
                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase flex items-center gap-1 shadow-lg whitespace-nowrap">
                   <Zap size={10} className="fill-white" /> {t.my_plan.recommended}
                 </div>
@@ -238,6 +248,37 @@ export const MyPlan = ({ user, onBuyPlan, onRedeemCode, onViewTransactions, setT
                   </li>
                 ))}
               </ul>
+
+              {/* Secondary Entry: Download Tool */}
+              {showDownloadEntry && (
+                <div className="mb-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col items-center">
+                  {(user.plan === 'pro' || user.plan === 'enterprise') ? (
+                    <button 
+                      onClick={() => setIsDownloadModalOpen(true)}
+                      className="flex items-center gap-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors py-2 px-4 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-500/10"
+                    >
+                      <Download size={14} />
+                      {t.my_plan.download_mass_send_tool}
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2 py-2 px-4">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        {t.my_plan.pro_exclusive}
+                      </span>
+                      <button 
+                        onClick={() => {
+                          const proCard = document.querySelector('[data-plan-id="pro"]');
+                          proCard?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }}
+                        className="text-[10px] font-bold text-indigo-500 hover:underline flex items-center gap-0.5"
+                      >
+                        {t.my_plan.upgrade_to_unlock}
+                        <ArrowRight size={10} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <button 
                 onClick={() => !isActive && !isDowngrade && onBuyPlan(plan.id)}
@@ -355,6 +396,205 @@ export const MyPlan = ({ user, onBuyPlan, onRedeemCode, onViewTransactions, setT
           </div>
         </div>
       </div>
+
+      {/* Download Modal */}
+      <Modal 
+        isOpen={isDownloadModalOpen} 
+        onClose={() => setIsDownloadModalOpen(false)} 
+        title={t.my_plan.download_modal_title}
+        width="max-w-lg"
+      >
+        <div className="space-y-8">
+          {/* Header Description */}
+          <div>
+            <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+              {t.my_plan.download_modal_subtitle}
+            </p>
+          </div>
+
+          {/* Status Badge */}
+          <div className="flex items-center justify-between p-4 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl border border-emerald-100 dark:border-emerald-500/20">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center text-emerald-500 shadow-sm">
+                <ShieldCheck size={20} />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-slate-900 dark:text-white">{t.my_plan.unlocked}</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">{t.my_plan.download_status_unlocked}</p>
+              </div>
+            </div>
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          </div>
+
+          {/* Features List */}
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t.my_plan.current_benefits}</h4>
+            <ul className="space-y-3">
+              {t.my_plan.download_features.map((feature, idx) => (
+                <li key={idx} className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-300">
+                  <CheckCircle2 size={16} className="text-indigo-500 shrink-0 mt-0.5" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Download Area */}
+          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-6 border border-slate-100 dark:border-slate-700 space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-bold text-slate-900 dark:text-white">{t.my_plan.download_version}</p>
+                <p className="text-xs text-slate-500">{t.my_plan.download_update_date}</p>
+              </div>
+            </div>
+
+            {/* OS Selection */}
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">{t.my_plan.download_os_label}</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => {
+                    setSelectedOS('windows');
+                    setSelectedChip(null);
+                  }}
+                  className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all font-medium ${
+                    selectedOS === 'windows'
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 dark:bg-slate-800 dark:border-slate-700'
+                  }`}
+                >
+                  {t.my_plan.download_os_windows}
+                </button>
+                <button
+                  onClick={() => setSelectedOS('macos')}
+                  className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all font-medium ${
+                    selectedOS === 'macos'
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 dark:bg-slate-800 dark:border-slate-700'
+                  }`}
+                >
+                  {t.my_plan.download_os_macos}
+                </button>
+              </div>
+            </div>
+
+            {/* Chip Selection (macOS only) */}
+            <AnimatePresence>
+              {selectedOS === 'macos' && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="space-y-4 overflow-hidden"
+                >
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">{t.my_plan.download_chip_label}</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => setSelectedChip('intel')}
+                        className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all font-medium text-sm ${
+                          selectedChip === 'intel'
+                            ? 'border-indigo-500 bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 dark:bg-slate-800 dark:border-slate-700'
+                        }`}
+                      >
+                        {t.my_plan.download_chip_intel}
+                      </button>
+                      <button
+                        onClick={() => setSelectedChip('apple')}
+                        className={`flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all font-medium text-sm ${
+                          selectedChip === 'apple'
+                            ? 'border-indigo-500 bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 dark:bg-slate-800 dark:border-slate-700'
+                        }`}
+                      >
+                        {t.my_plan.download_chip_apple}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                      {t.my_plan.download_chip_hint}
+                    </p>
+                    <button 
+                      onClick={() => setShowChipHelp(true)}
+                      className="text-[10px] font-bold text-indigo-500 hover:text-indigo-600 transition-colors flex items-center gap-1"
+                    >
+                      <Info size={10} /> {t.my_plan.download_chip_help_btn}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <button 
+              disabled={!selectedOS || (selectedOS === 'macos' && !selectedChip)}
+              onClick={() => {
+                setToast({ message: t.my_plan.download_demo_notice, type: 'info' });
+              }}
+              className={`w-full py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 group ${
+                (!selectedOS || (selectedOS === 'macos' && !selectedChip))
+                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-700'
+                  : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-600/20'
+              }`}
+            >
+              <Download size={20} className={(!selectedOS || (selectedOS === 'macos' && !selectedChip)) ? '' : 'group-hover:translate-y-0.5 transition-transform'} />
+              {!selectedOS 
+                ? t.my_plan.download_btn_select 
+                : selectedOS === 'windows' 
+                  ? t.my_plan.download_btn_win 
+                  : !selectedChip 
+                    ? t.my_plan.download_btn_select 
+                    : selectedChip === 'intel' 
+                      ? t.my_plan.download_btn_mac_intel 
+                      : t.my_plan.download_btn_mac_apple
+              }
+            </button>
+          </div>
+
+          {/* Footer Links */}
+          <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] text-slate-400 font-medium italic">
+                * {t.my_plan.download_demo_notice}
+              </p>
+              <div className="flex items-center gap-4">
+                <button className="text-[10px] font-bold text-slate-500 hover:text-indigo-500 transition-colors flex items-center gap-1">
+                  <Info size={10} /> {t.my_plan.download_footer_links.install}
+                </button>
+                <button className="text-[10px] font-bold text-slate-500 hover:text-indigo-500 transition-colors flex items-center gap-1">
+                  <ExternalLink size={10} /> {t.my_plan.download_footer_links.tutorial}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Chip Help Modal (Simple) */}
+          <Modal
+            isOpen={showChipHelp}
+            onClose={() => setShowChipHelp(false)}
+            title={t.my_plan.download_chip_help_title}
+            width="max-w-sm"
+          >
+            <div className="space-y-4 py-2">
+              <div className="space-y-3">
+                {t.my_plan.download_chip_help_steps.map((step, idx) => (
+                  <p key={idx} className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                    {step}
+                  </p>
+                ))}
+              </div>
+              <button
+                onClick={() => setShowChipHelp(false)}
+                className="w-full py-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+              >
+                {t.common.confirm}
+              </button>
+            </div>
+          </Modal>
+        </div>
+      </Modal>
     </div>
   );
 };

@@ -9,7 +9,7 @@
  * 
  * 定义了应用中所有可切换的页面视图。
  */
-export type ViewState = 'workspace' | 'history' | 'task_detail' | 'my_plan' | 'transactions' | 'mass_send' | 'account' | 'design_system' | 'promotion_center' | 'invite_history' | 'reward_history' | 'alipay_info' | 'referral_dashboard' | 'promotion_apply' | 'promotion_pending' | 'promotion_rejected' | 'promotion_form' | 'withdrawal_form';
+export type ViewState = 'workspace' | 'history' | 'task_detail' | 'my_plan' | 'transactions' | 'account' | 'design_system' | 'promotion_center' | 'invite_history' | 'reward_history' | 'alipay_info' | 'referral_dashboard' | 'promotion_apply' | 'promotion_pending' | 'promotion_rejected' | 'promotion_form' | 'withdrawal_form';
 
 /**
  * 推广申请状态
@@ -38,7 +38,7 @@ export interface UserProfile {
   id: string; // 用户唯一 ID
   name: string; // 用户昵称
   avatar: string; // 用户头像 URL
-  quota: number | 'unlimited'; // 剩余算力配额
+  quota: number; // 剩余算力配额
   usedQuota: number; // 累计已使用算力
   plan: 'free' | 'basic' | 'pro' | 'enterprise'; // 当前套餐等级
   expireDate?: string; // 套餐到期日期

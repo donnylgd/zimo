@@ -541,7 +541,7 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, onCha
           return;
         }
         // Check quota
-        if (user.quota !== 'unlimited' && user.quota <= 0) {
+        if (user.quota <= 0) {
           setUploadState('quota_error');
           setIsGenerating(false);
           return;
@@ -553,7 +553,7 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, onCha
           return;
         }
         // Check quota
-        if (user.quota !== 'unlimited' && user.quota <= 0) {
+        if (user.quota <= 0) {
           setIsGenerating(false);
           return;
         }

@@ -10,7 +10,6 @@ import { History, Task } from './components/History';
 import { TaskDetail, TaskResult } from './components/TaskDetail';
 import { MyPlan } from './components/MyPlan';
 import { Transactions } from './components/Transactions';
-import { MassSend } from './components/MassSend';
 import { AccountCenter } from './components/AccountCenter';
 import { DesignSystem } from './components/DesignSystem';
 import { PromotionCenter } from './components/PromotionCenter';
@@ -1101,9 +1100,7 @@ function App() {
 
       if (response.code === 200) {
         // 扣除配额
-        if (user.quota !== 'unlimited') {
-          setUser({ ...user, quota: user.quota - 1 });
-        }
+        setUser({ ...user, quota: user.quota - 1 });
 
         const newTask: Task = {
           id: response.data.taskId,
@@ -1153,9 +1150,7 @@ function App() {
     } catch (error) {
       console.error('Create task failed, using fallback:', error);
       // 兜底逻辑
-      if (user.quota !== 'unlimited') {
-        setUser({ ...user, quota: user.quota - 1 });
-      }
+      setUser({ ...user, quota: user.quota - 1 });
 
       const mockTaskId = `t${Date.now()}`;
       const newTask: Task = {
@@ -1209,7 +1204,7 @@ function App() {
         setUser(prev => prev ? { 
           ...prev, 
           plan: planId as any, 
-          quota: planId === 'pro' ? 'unlimited' : 5000,
+          quota: planId === 'pro' ? 3000 : planId === 'enterprise' ? 10000 : 800,
           planStartDate: new Date().toLocaleDateString(),
           expireDate: '2024-04-26'
         } : null);
@@ -1291,16 +1286,12 @@ function App() {
             />
           )}
 
-          {currentView === 'mass_send' && (
-            <MassSend t={t} />
-          )}
-
           {currentView === 'my_plan' && user && (
             <MyPlan 
               user={user} 
               onBuyPlan={handleBuyPlan}
               onRedeemCode={(code) => {
-                setUser({ ...user, quota: user.quota === 'unlimited' ? 'unlimited' : user.quota + 100 });
+                setUser({ ...user, quota: user.quota + 100 });
                 setToast({ message: t.common.success_redeem, type: 'success' });
               }}
               onViewTransactions={() => setCurrentView('transactions')}

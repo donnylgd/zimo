@@ -232,7 +232,7 @@ export const AccountCenter = ({
             <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-700/50">
               <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t.account.remaining_quota}</p>
               <p className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-                {user.quota === 'unlimited' ? t.user.unlimited : user.quota.toLocaleString()}
+                {user.quota.toLocaleString()}
                 <span className="text-xs font-normal text-slate-500 ml-1">{t.user.unit}</span>
               </p>
             </div>
