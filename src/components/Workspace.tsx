@@ -89,7 +89,6 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, onCha
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isGeneratingSubject, setIsGeneratingSubject] = useState(false); // 正在生成标题状态
-  const [isOptimizingSellingPoints, setIsOptimizingSellingPoints] = useState(false); // 正在优化卖点状态
   const [subjectGenerated, setSubjectGenerated] = useState(false); // 标题是否已生成
   const [isGenerating, setIsGenerating] = useState(false); // 正在提交任务状态
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false); // 升级弹窗状态
@@ -227,74 +226,6 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, onCha
       setToast({ message: t.common.dev_mode_notice + ': ' + t.common.success, type: 'warning' });
     } finally {
       setIsGeneratingSubject(false);
-    }
-  };
-
-  /**
-   * 处理 AI 优化产品卖点
-   * 
-   * 调用 aiService.optimizeSellingPoints 接口，对用户输入的产品卖点进行润色。
-   * 包含 API 调用失败后的本地兜底逻辑。
-   */
-  const handleOptimizeSellingPoints = async () => {
-    if (!config.sellingPoints) {
-      setShowValidation(true);
-      return;
-    }
-    if (isOptimizingSellingPoints) return;
-    
-    setIsOptimizingSellingPoints(true);
-    setToast({ message: t.common.loading_ai_points, type: 'info' });
-    
-    try {
-      const response = await aiService.optimizeSellingPoints({
-        stage: config.stage,
-        sellingPoints: config.sellingPoints,
-        productName: config.productName,
-        genLanguage: config.genLanguage
-      });
-      
-      if (response.code === 200) {
-        setConfig(prev => ({ ...prev, sellingPoints: response.data.optimizedPoints }));
-        setToast({ message: t.common.success, type: 'success' });
-      } else {
-        throw new Error(response.message || 'API Error');
-      }
-    } catch (error) {
-      console.error('Optimize selling points failed, using fallback:', error);
-      // 兜底逻辑
-      let optimized = config.sellingPoints;
-      const lang = config.genLanguage;
-      
-      if (config.stage === 'initial') {
-        if (lang === 'es') {
-          optimized = `[Optimizado por AI] ${config.sellingPoints} (Enfoque: Conciso y Atractivo)`;
-        } else if (lang === 'pt') {
-          optimized = `[Otimizado por AI] ${config.sellingPoints} (Foco: Conciso e Atraente)`;
-        } else {
-          optimized = `[AI Optimized] ${config.sellingPoints} (Focus: Concise & Hooking)`;
-        }
-      } else if (config.stage === 'details') {
-        if (lang === 'es') {
-          optimized = `[Optimizado por AI] ${config.sellingPoints} (Enfoque: Completo y Orientado al Valor)`;
-        } else if (lang === 'pt') {
-          optimized = `[Otimizado por AI] ${config.sellingPoints} (Foco: Completo e Orientado ao Valor)`;
-        } else {
-          optimized = `[AI Optimized] ${config.sellingPoints} (Focus: Complete & Value-driven)`;
-        }
-      } else if (config.stage === 'tracking') {
-        if (lang === 'es') {
-          optimized = `[Optimizado por AI] ${config.sellingPoints} (Enfoque: Ligero y Estilo Notificación)`;
-        } else if (lang === 'pt') {
-          optimized = `[Otimizado por AI] ${config.sellingPoints} (Foco: Leve e Estilo Notificação)`;
-        } else {
-          optimized = `[AI Optimized] ${config.sellingPoints} (Focus: Light & Notification-style)`;
-        }
-      }
-      setConfig(prev => ({ ...prev, sellingPoints: optimized }));
-      setToast({ message: t.common.dev_mode_notice + ': ' + t.common.success, type: 'warning' });
-    } finally {
-      setIsOptimizingSellingPoints(false);
     }
   };
 
@@ -1182,19 +1113,9 @@ export const Workspace = ({ user, onLoginClick, onStartGenerate, setToast, onCha
                       <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                         {t.workspace.selling_points} <span className="text-red-500">*</span>
                       </label>
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={handleOptimizeSellingPoints}
-                          disabled={isOptimizingSellingPoints || !config.sellingPoints}
-                          className="text-[10px] font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 flex items-center gap-1 transition-all disabled:opacity-50"
-                        >
-                          {isOptimizingSellingPoints ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
-                          {isOptimizingSellingPoints ? t.common.loading_ai_points : t.workspace.ai_optimize}
-                        </button>
-                        <span className={`text-xs ${config.sellingPoints.length > 300 ? 'text-red-500 font-medium' : 'text-slate-400 dark:text-slate-500'}`}>
-                          {config.sellingPoints.length} / 300
-                        </span>
-                      </div>
+                      <span className={`text-xs ${config.sellingPoints.length > 300 ? 'text-red-500 font-medium' : 'text-slate-400 dark:text-slate-500'}`}>
+                        {config.sellingPoints.length} / 300
+                      </span>
                     </div>
                     <textarea 
                       placeholder={t.workspace.selling_points_placeholder}
